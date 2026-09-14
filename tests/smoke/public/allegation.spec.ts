@@ -3,6 +3,12 @@ import { test, expect } from '@playwright/test';
 import { SubmitReportPage } from '../../../pages/public/submit-report/SubmitReportPage';
 import { ReportingNoticePage } from '../../../pages/public/ReportingNoticePage';
 
+
+// ============================================================
+// TC-014
+// Happy Path - Exact Date = Yes
+// ============================================================
+
 test(
   'TC-014 | User can complete Allegation and continue to Person(s) Involved @smoke @public @intake',
   async ({ page }) => {
@@ -10,14 +16,13 @@ test(
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
 
-    // 1. Open portal
     await submit.open();
 
-    // 2. Reporting Notice
+    // Reporting Notice
     await notice.verifyLoaded();
     await notice.next();
 
-    // 3. Reporter Info
+    // Reporter Info
     await submit.reporterInfo.verifyLoaded();
 
     await submit.reporterInfo.fill({
@@ -27,7 +32,7 @@ test(
 
     await submit.reporterInfo.next();
 
-    // 4. Classification
+    // Classification
     await submit.classification.verifyLoaded();
 
     await submit.classification.selectInternalAuditAnswer('No');
@@ -42,27 +47,33 @@ test(
 
     await submit.classification.next();
 
-    // 5. Allegation
+    // Allegation
     await submit.allegation.verifyLoaded();
 
     await submit.allegation.fill({
       incidentTitle: 'Potential conflict of interest',
+
       whatHappened:
         'An employee may have participated in a decision involving a related party.',
+
       rulePolicyLaw:
         'Conflict of Interest Policy',
+
       awarenessMethod:
         'I became aware through internal business communication.',
+
       incidentLocation:
         'Riyadh Office',
+
       knowsExactDate: 'Yes',
-      incidentDate: '2026-09-09',
+
+      incidentDate: '2026-09-13',
+
       ongoing: 'No'
     });
 
     await submit.allegation.next();
 
-    // 6. Verify next step
     await expect(
       page.getByRole('heading', {
         name: 'Person(s) Involved',
@@ -70,21 +81,27 @@ test(
       })
     ).toBeVisible();
   }
-);test(
+);
+
+
+// ============================================================
+// TC-015
+// Mandatory Fields Validation
+// ============================================================
+
+test(
   'TC-015 | Allegation mandatory fields validation @negative @public @intake',
   async ({ page }) => {
 
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
 
-    // 1. Open portal
     await submit.open();
 
-    // 2. Notice
     await notice.verifyLoaded();
     await notice.next();
 
-    // 3. Reporter Info
+    // Reporter Info
     await submit.reporterInfo.fill({
       identityType: 'anonymous',
       reporterCategory: 'Employee'
@@ -92,24 +109,26 @@ test(
 
     await submit.reporterInfo.next();
 
-    // 4. Classification
+    // Classification
     await submit.classification.selectInternalAuditAnswer('No');
+
     await submit.classification.selectCategory(
       'Conflict of Interest'
     );
+
     await submit.classification.selectSubcategory(
       'Nepotism/Cronyism'
     );
 
     await submit.classification.next();
 
-    // 5. Allegation loaded
+    // Allegation
     await submit.allegation.verifyLoaded();
 
-    // 6. Do NOT fill mandatory fields
+    // Do not fill mandatory fields
     await submit.allegation.next();
 
-    // 7. User must remain on Allegation
+    // Must remain on Allegation
     await expect(
       page.getByRole('heading', {
         name: 'Allegation',
@@ -117,30 +136,48 @@ test(
       })
     ).toBeVisible();
 
-    // 8. Required inputs should be invalid
+    // Required fields should be invalid
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Title',
         exact: true
       })
-    ).toHaveAttribute('aria-invalid', 'true');
+    ).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
 
     await expect(
       page.getByRole('textbox', {
         name: 'What Happened?',
         exact: true
       })
-    ).toHaveAttribute('aria-invalid', 'true');
+    ).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
 
     await expect(
       page.getByRole('textbox', {
         name: 'How Did You Become Aware of the Issue?',
         exact: true
       })
-    ).toHaveAttribute('aria-invalid', 'true');
+    ).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
   }
-);test(
-  'TC-016 | Incident Date field is hidden when Exact Date is No @public @intake',
+);
+
+
+// ============================================================
+// TC-016
+// Exact Date = No
+// Incident Date Description appears
+// ============================================================
+
+test(
+  'TC-016 | Incident Date Description appears when Exact Date is No @public @intake',
   async ({ page }) => {
 
     const submit = new SubmitReportPage(page);
@@ -151,6 +188,9 @@ test(
     await notice.verifyLoaded();
     await notice.next();
 
+    // Reporter Info
+    await submit.reporterInfo.verifyLoaded();
+
     await submit.reporterInfo.fill({
       identityType: 'anonymous',
       reporterCategory: 'Employee'
@@ -158,30 +198,45 @@ test(
 
     await submit.reporterInfo.next();
 
+    // Classification
+    await submit.classification.verifyLoaded();
+
     await submit.classification.selectInternalAuditAnswer('No');
+
     await submit.classification.selectCategory(
       'Conflict of Interest'
     );
+
     await submit.classification.selectSubcategory(
       'Nepotism/Cronyism'
     );
 
     await submit.classification.next();
 
+    // Allegation
     await submit.allegation.verifyLoaded();
 
     await submit.allegation.fill({
       incidentTitle: 'Potential conflict of interest',
+
       whatHappened:
         'An employee may have participated in a decision involving a related party.',
+
       awarenessMethod:
         'I became aware through internal business communication.',
+
       incidentLocation:
         'Riyadh Office',
+
       knowsExactDate: 'No',
+
+      incidentDateDescription:
+        'The incident occurred approximately during September 2026.',
+
       ongoing: 'No'
     });
 
+    // Exact date input must be hidden
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Date',
@@ -189,6 +244,26 @@ test(
       })
     ).toBeHidden();
 
+    // Description must be visible
+    const dateDescription = page.getByRole(
+      'textbox',
+      {
+        name: 'Incident Date Description',
+        exact: true
+      }
+    );
+
+    await expect(
+      dateDescription
+    ).toBeVisible();
+
+    await expect(
+      dateDescription
+    ).toHaveValue(
+      'The incident occurred approximately during September 2026.'
+    );
+
+    // Continue
     await submit.allegation.next();
 
     await expect(
@@ -198,7 +273,16 @@ test(
       })
     ).toBeVisible();
   }
-);const ongoingOptions = [
+);
+
+
+// ============================================================
+// TC-017
+// Ongoing values
+// Yes / No / I don't know
+// ============================================================
+
+const ongoingOptions = [
   'Yes',
   'No',
   "I don't know"
@@ -227,7 +311,9 @@ for (const ongoing of ongoingOptions) {
       await submit.reporterInfo.next();
 
       // Classification
-      await submit.classification.selectInternalAuditAnswer('No');
+      await submit.classification.selectInternalAuditAnswer(
+        'No'
+      );
 
       await submit.classification.selectCategory(
         'Conflict of Interest'
@@ -243,7 +329,8 @@ for (const ongoing of ongoingOptions) {
       await submit.allegation.verifyLoaded();
 
       await submit.allegation.fill({
-        incidentTitle: 'Potential conflict of interest',
+        incidentTitle:
+          'Potential conflict of interest',
 
         whatHappened:
           'An employee may have participated in a decision involving a related party.',
@@ -253,10 +340,23 @@ for (const ongoing of ongoingOptions) {
 
         knowsExactDate: 'No',
 
+        incidentDateDescription:
+          'The incident occurred approximately during September 2026.',
+
         ongoing
       });
 
-      // Verify selected value
+      // Verify date description
+      await expect(
+        page.getByRole('textbox', {
+          name: 'Incident Date Description',
+          exact: true
+        })
+      ).toHaveValue(
+        'The incident occurred approximately during September 2026.'
+      );
+
+      // Verify ongoing option
       const ongoingGroup = page.getByRole(
         'radiogroup',
         {
@@ -271,7 +371,6 @@ for (const ongoing of ongoingOptions) {
         })
       ).toBeChecked();
 
-      // Continue
       await submit.allegation.next();
 
       await expect(
@@ -282,7 +381,15 @@ for (const ongoing of ongoingOptions) {
       ).toBeVisible();
     }
   );
-}test(
+}
+
+
+// ============================================================
+// TC-018
+// Incident Date required when Exact Date = Yes
+// ============================================================
+
+test(
   'TC-018 | Incident Date is required when Exact Date is Yes @negative @public @intake',
   async ({ page }) => {
 
@@ -303,7 +410,9 @@ for (const ongoing of ongoingOptions) {
     await submit.reporterInfo.next();
 
     // Classification
-    await submit.classification.selectInternalAuditAnswer('No');
+    await submit.classification.selectInternalAuditAnswer(
+      'No'
+    );
 
     await submit.classification.selectCategory(
       'Conflict of Interest'
@@ -330,11 +439,15 @@ for (const ongoing of ongoingOptions) {
       'I became aware through internal business communication.'
     );
 
-    // Exact Date = Yes
-    await submit.allegation.selectExactDate('Yes');
+    // Exact date = Yes
+    await submit.allegation.selectExactDate(
+      'Yes'
+    );
 
     // Do NOT enter Incident Date
-    await submit.allegation.selectOngoing('No');
+    await submit.allegation.selectOngoing(
+      'No'
+    );
 
     await submit.allegation.next();
 
@@ -346,36 +459,44 @@ for (const ongoing of ongoingOptions) {
       })
     ).toBeVisible();
 
-    // Incident Date should still be visible
-    const incidentDate = page.getByRole('textbox', {
-      name: 'Incident Date',
-      exact: true
-    });
+    const incidentDate = page.getByRole(
+      'textbox',
+      {
+        name: 'Incident Date',
+        exact: true
+      }
+    );
 
-    await expect(incidentDate).toBeVisible();
-    await expect(incidentDate).toHaveValue('');
+    await expect(
+      incidentDate
+    ).toBeVisible();
+
+    await expect(
+      incidentDate
+    ).toHaveValue('');
   }
-);test(
+);
+
+
+// ============================================================
+// TC-019
+// Allegation data persistence
+// Back -> Classification -> Next -> Allegation
+// ============================================================
+
+test(
   'TC-019 | Allegation data is preserved after Back and returning to Allegation @public @intake',
   async ({ page }) => {
 
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
 
-    // =========================================================
-    // 1. Open portal
-    // =========================================================
     await submit.open();
 
-    // =========================================================
-    // 2. Reporting Notice
-    // =========================================================
     await notice.verifyLoaded();
     await notice.next();
 
-    // =========================================================
-    // 3. Reporter Info
-    // =========================================================
+    // Reporter Info
     await submit.reporterInfo.verifyLoaded();
 
     await submit.reporterInfo.fill({
@@ -385,12 +506,12 @@ for (const ongoing of ongoingOptions) {
 
     await submit.reporterInfo.next();
 
-    // =========================================================
-    // 4. Classification
-    // =========================================================
+    // Classification
     await submit.classification.verifyLoaded();
 
-    await submit.classification.selectInternalAuditAnswer('No');
+    await submit.classification.selectInternalAuditAnswer(
+      'No'
+    );
 
     await submit.classification.selectCategory(
       'Conflict of Interest'
@@ -402,13 +523,12 @@ for (const ongoing of ongoingOptions) {
 
     await submit.classification.next();
 
-    // =========================================================
-    // 5. Allegation
-    // =========================================================
+    // Allegation
     await submit.allegation.verifyLoaded();
 
     await submit.allegation.fill({
-      incidentTitle: 'Potential conflict of interest',
+      incidentTitle:
+        'Potential conflict of interest',
 
       whatHappened:
         'An employee may have participated in a decision involving a related party.',
@@ -422,23 +542,22 @@ for (const ongoing of ongoingOptions) {
       incidentLocation:
         'Riyadh Office',
 
-      knowsExactDate: 'Yes',
+      knowsExactDate:
+        'Yes',
 
-      incidentDate: '2026-09-13',
+      incidentDate:
+        '2026-09-13',
 
-      ongoing: 'No'
+      ongoing:
+        'No'
     });
 
-    // =========================================================
-    // 6. Back -> Classification
-    // =========================================================
+    // Back -> Classification
     await submit.allegation.back();
 
     await submit.classification.verifyLoaded();
 
-    // =========================================================
-    // 7. Verify Classification data is preserved
-    // =========================================================
+    // Verify Classification persistence
     await expect(
       page.getByRole('radio', {
         name: 'No',
@@ -451,25 +570,25 @@ for (const ongoing of ongoingOptions) {
         name: 'Category',
         exact: true
       })
-    ).toHaveValue('Conflict of Interest');
+    ).toHaveValue(
+      'Conflict of Interest'
+    );
 
     await expect(
       page.getByRole('combobox', {
         name: 'Subcategory',
         exact: true
       })
-    ).toHaveValue('Nepotism/Cronyism');
+    ).toHaveValue(
+      'Nepotism/Cronyism'
+    );
 
-    // =========================================================
-    // 8. Forward -> Allegation
-    // =========================================================
+    // Return forward normally
     await submit.classification.next();
 
     await submit.allegation.verifyLoaded();
 
-    // =========================================================
-    // 9. Verify Allegation text fields are preserved
-    // =========================================================
+    // Verify Incident Title
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Title',
@@ -479,6 +598,7 @@ for (const ongoing of ongoingOptions) {
       'Potential conflict of interest'
     );
 
+    // Verify What Happened
     await expect(
       page.getByRole('textbox', {
         name: 'What Happened?',
@@ -488,24 +608,29 @@ for (const ongoing of ongoingOptions) {
       'An employee may have participated in a decision involving a related party.'
     );
 
+    // Verify Rule / Policy / Law
     await expect(
       page.getByRole('textbox', {
-        name: 'What Rule, Policy, or Law May Have Been Violated?',
+        name:
+          'What Rule, Policy, or Law May Have Been Violated?',
         exact: true
       })
     ).toHaveValue(
       'Conflict of Interest Policy'
     );
 
+    // Verify Awareness
     await expect(
       page.getByRole('textbox', {
-        name: 'How Did You Become Aware of the Issue?',
+        name:
+          'How Did You Become Aware of the Issue?',
         exact: true
       })
     ).toHaveValue(
       'I became aware through internal business communication.'
     );
 
+    // Verify Location
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Location',
@@ -515,9 +640,7 @@ for (const ongoing of ongoingOptions) {
       'Riyadh Office'
     );
 
-    // =========================================================
-    // 10. Verify Exact Date = Yes is preserved
-    // =========================================================
+    // Exact Date = Yes
     const exactDateGroup = page
       .getByRole('radiogroup')
       .first();
@@ -529,50 +652,51 @@ for (const ongoing of ongoingOptions) {
       })
     ).toBeChecked();
 
-    // =========================================================
-    // 11. Verify Incident Date is preserved
-    // =========================================================
-    const incidentDate = page.getByRole(
-      'textbox',
-      {
+    // Verify Date
+    await expect(
+      page.getByRole('textbox', {
         name: 'Incident Date',
         exact: true
-      }
-    );
-
-    await expect(incidentDate).toBeVisible();
-
-    await expect(
-      incidentDate
+      })
     ).toHaveValue(
       '2026-09-13'
     );
 
-    // =========================================================
-    // 12. Verify Ongoing = No is preserved
-    // =========================================================
-    const ongoingGroup = page.getByRole(
-      'radiogroup',
-      {
-        name: 'Is Incident Ongoing?'
-      }
-    );
-
+    // Date Description must not appear
     await expect(
-      ongoingGroup.getByRole('radio', {
-        name: 'No',
+      page.getByRole('textbox', {
+        name: 'Incident Date Description',
         exact: true
       })
+    ).toBeHidden();
+
+    // Ongoing = No
+    await expect(
+      page
+        .getByRole('radiogroup', {
+          name: 'Is Incident Ongoing?'
+        })
+        .getByRole('radio', {
+          name: 'No',
+          exact: true
+        })
     ).toBeChecked();
   }
-);test(
-  'TC-020 | Changing Exact Date from Yes to No hides Incident Date and allows continuation @public @intake',
+);
+
+
+// ============================================================
+// TC-020
+// Change Exact Date Yes -> No
+// ============================================================
+
+test(
+  'TC-020 | Changing Exact Date from Yes to No hides Incident Date and shows Date Description @public @intake',
   async ({ page }) => {
 
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
 
-    // Open
     await submit.open();
 
     await notice.verifyLoaded();
@@ -587,7 +711,9 @@ for (const ongoing of ongoingOptions) {
     await submit.reporterInfo.next();
 
     // Classification
-    await submit.classification.selectInternalAuditAnswer('No');
+    await submit.classification.selectInternalAuditAnswer(
+      'No'
+    );
 
     await submit.classification.selectCategory(
       'Conflict of Interest'
@@ -614,38 +740,85 @@ for (const ongoing of ongoingOptions) {
       'I became aware through internal business communication.'
     );
 
+    // =======================================================
     // Exact Date = Yes
-    await submit.allegation.selectExactDate('Yes');
+    // =======================================================
 
-    const incidentDate = page.getByRole('textbox', {
-      name: 'Incident Date',
-      exact: true
-    });
+    await submit.allegation.selectExactDate(
+      'Yes'
+    );
 
-    await expect(incidentDate).toBeVisible();
+    const incidentDate = page.getByRole(
+      'textbox',
+      {
+        name: 'Incident Date',
+        exact: true
+      }
+    );
 
-    // Enter date
+    const dateDescription = page.getByRole(
+      'textbox',
+      {
+        name: 'Incident Date Description',
+        exact: true
+      }
+    );
+
+    await expect(
+      incidentDate
+    ).toBeVisible();
+
+    await expect(
+      dateDescription
+    ).toBeHidden();
+
+    // Enter exact date
     await submit.allegation.fillIncidentDate(
       '2026-09-13'
     );
 
-    await expect(incidentDate).toHaveValue(
+    await expect(
+      incidentDate
+    ).toHaveValue(
       '2026-09-13'
     );
 
+    // =======================================================
     // Change Yes -> No
-    await submit.allegation.selectExactDate('No');
+    // =======================================================
 
-    // Conditional field must disappear
-    await expect(incidentDate).toBeHidden();
+    await submit.allegation.selectExactDate(
+      'No'
+    );
 
-    // Complete remaining required selection
-    await submit.allegation.selectOngoing('No');
+    // Exact date disappears
+    await expect(
+      incidentDate
+    ).toBeHidden();
+
+    // Description appears
+    await expect(
+      dateDescription
+    ).toBeVisible();
+
+    await submit.allegation.fillIncidentDateDescription(
+      'The exact date is unknown, but the incident occurred approximately during September 2026.'
+    );
+
+    await expect(
+      dateDescription
+    ).toHaveValue(
+      'The exact date is unknown, but the incident occurred approximately during September 2026.'
+    );
+
+    // Ongoing
+    await submit.allegation.selectOngoing(
+      'No'
+    );
 
     // Continue
     await submit.allegation.next();
 
-    // Verify next wizard step
     await expect(
       page.getByRole('heading', {
         name: 'Person(s) Involved',
