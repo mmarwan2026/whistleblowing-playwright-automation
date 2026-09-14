@@ -1,4 +1,12 @@
+export interface Witness {
+  firstName?: string;
+  lastName?: string;
+  position?: string;
+  department?: string;
+  notes?: string;
+}
+
 export interface WitnessData {
-  fullName: string;
-  contactInfo?: string;
+  hasWitnesses: 'Yes' | 'No' | "I don't know";
+  witnesses?: Witness[];
 }
