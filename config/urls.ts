@@ -1,7 +1,7 @@
 export const Routes = {
   public: {
     home: '/',
-    submitReport: '/submit-report',
+    submitReport: 'aura/report',
     followUp: '/follow-up'
   },
   staff: {
