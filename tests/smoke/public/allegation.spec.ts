@@ -74,12 +74,8 @@ test(
 
     await submit.allegation.next();
 
-    await expect(
-      page.getByRole('heading', {
-        name: 'Person(s) Involved',
-        level: 2
-      })
-    ).toBeVisible();
+    // Person(s) Involved
+   await submit.personsInvolved.verifyLoaded();
   }
 );
 
@@ -136,7 +132,7 @@ test(
       })
     ).toBeVisible();
 
-    // Required fields should be invalid
+    // Required Fields
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Title',
@@ -217,7 +213,8 @@ test(
     await submit.allegation.verifyLoaded();
 
     await submit.allegation.fill({
-      incidentTitle: 'Potential conflict of interest',
+      incidentTitle:
+        'Potential conflict of interest',
 
       whatHappened:
         'An employee may have participated in a decision involving a related party.',
@@ -228,15 +225,17 @@ test(
       incidentLocation:
         'Riyadh Office',
 
-      knowsExactDate: 'No',
+      knowsExactDate:
+        'No',
 
       incidentDateDescription:
         'The incident occurred approximately during September 2026.',
 
-      ongoing: 'No'
+      ongoing:
+        'No'
     });
 
-    // Exact date input must be hidden
+    // Incident Date hidden
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Date',
@@ -244,14 +243,12 @@ test(
       })
     ).toBeHidden();
 
-    // Description must be visible
-    const dateDescription = page.getByRole(
-      'textbox',
-      {
+    // Description visible
+    const dateDescription =
+      page.getByRole('textbox', {
         name: 'Incident Date Description',
         exact: true
-      }
-    );
+      });
 
     await expect(
       dateDescription
@@ -263,15 +260,9 @@ test(
       'The incident occurred approximately during September 2026.'
     );
 
-    // Continue
     await submit.allegation.next();
 
-    await expect(
-      page.getByRole('heading', {
-        name: 'Person(s) Involved',
-        level: 2
-      })
-    ).toBeVisible();
+    await submit.personsInvolved.verifyLoaded();
   }
 );
 
@@ -338,7 +329,8 @@ for (const ongoing of ongoingOptions) {
         awarenessMethod:
           'I became aware through internal business communication.',
 
-        knowsExactDate: 'No',
+        knowsExactDate:
+          'No',
 
         incidentDateDescription:
           'The incident occurred approximately during September 2026.',
@@ -346,7 +338,7 @@ for (const ongoing of ongoingOptions) {
         ongoing
       });
 
-      // Verify date description
+      // Verify Incident Date Description
       await expect(
         page.getByRole('textbox', {
           name: 'Incident Date Description',
@@ -357,12 +349,13 @@ for (const ongoing of ongoingOptions) {
       );
 
       // Verify ongoing option
-      const ongoingGroup = page.getByRole(
-        'radiogroup',
-        {
-          name: 'Is Incident Ongoing?'
-        }
-      );
+      const ongoingGroup =
+        page.getByRole(
+          'radiogroup',
+          {
+            name: 'Is Incident Ongoing?'
+          }
+        );
 
       await expect(
         ongoingGroup.getByRole('radio', {
@@ -373,12 +366,7 @@ for (const ongoing of ongoingOptions) {
 
       await submit.allegation.next();
 
-      await expect(
-        page.getByRole('heading', {
-          name: 'Person(s) Involved',
-          level: 2
-        })
-      ).toBeVisible();
+      await submit.personsInvolved.verifyLoaded();
     }
   );
 }
@@ -439,12 +427,12 @@ test(
       'I became aware through internal business communication.'
     );
 
-    // Exact date = Yes
+    // Exact Date = Yes
     await submit.allegation.selectExactDate(
       'Yes'
     );
 
-    // Do NOT enter Incident Date
+    // Do not enter Incident Date
     await submit.allegation.selectOngoing(
       'No'
     );
@@ -459,13 +447,14 @@ test(
       })
     ).toBeVisible();
 
-    const incidentDate = page.getByRole(
-      'textbox',
-      {
-        name: 'Incident Date',
-        exact: true
-      }
-    );
+    const incidentDate =
+      page.getByRole(
+        'textbox',
+        {
+          name: 'Incident Date',
+          exact: true
+        }
+      );
 
     await expect(
       incidentDate
@@ -480,8 +469,8 @@ test(
 
 // ============================================================
 // TC-019
-// Allegation data persistence
-// Back -> Classification -> Next -> Allegation
+// Data Persistence
+// Allegation -> Back -> Classification -> Next -> Allegation
 // ============================================================
 
 test(
@@ -557,7 +546,7 @@ test(
 
     await submit.classification.verifyLoaded();
 
-    // Verify Classification persistence
+    // Classification persistence
     await expect(
       page.getByRole('radio', {
         name: 'No',
@@ -583,12 +572,12 @@ test(
       'Nepotism/Cronyism'
     );
 
-    // Return forward normally
+    // Return to Allegation
     await submit.classification.next();
 
     await submit.allegation.verifyLoaded();
 
-    // Verify Incident Title
+    // Incident Title
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Title',
@@ -598,7 +587,7 @@ test(
       'Potential conflict of interest'
     );
 
-    // Verify What Happened
+    // What Happened
     await expect(
       page.getByRole('textbox', {
         name: 'What Happened?',
@@ -608,7 +597,7 @@ test(
       'An employee may have participated in a decision involving a related party.'
     );
 
-    // Verify Rule / Policy / Law
+    // Rule / Policy / Law
     await expect(
       page.getByRole('textbox', {
         name:
@@ -619,7 +608,7 @@ test(
       'Conflict of Interest Policy'
     );
 
-    // Verify Awareness
+    // Awareness
     await expect(
       page.getByRole('textbox', {
         name:
@@ -630,7 +619,7 @@ test(
       'I became aware through internal business communication.'
     );
 
-    // Verify Location
+    // Location
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Location',
@@ -641,9 +630,10 @@ test(
     );
 
     // Exact Date = Yes
-    const exactDateGroup = page
-      .getByRole('radiogroup')
-      .first();
+    const exactDateGroup =
+      page
+        .getByRole('radiogroup')
+        .first();
 
     await expect(
       exactDateGroup.getByRole('radio', {
@@ -652,7 +642,7 @@ test(
       })
     ).toBeChecked();
 
-    // Verify Date
+    // Date
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Date',
@@ -662,7 +652,7 @@ test(
       '2026-09-13'
     );
 
-    // Date Description must not appear
+    // Description hidden
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Date Description',
@@ -673,9 +663,12 @@ test(
     // Ongoing = No
     await expect(
       page
-        .getByRole('radiogroup', {
-          name: 'Is Incident Ongoing?'
-        })
+        .getByRole(
+          'radiogroup',
+          {
+            name: 'Is Incident Ongoing?'
+          }
+        )
         .getByRole('radio', {
           name: 'No',
           exact: true
@@ -748,21 +741,23 @@ test(
       'Yes'
     );
 
-    const incidentDate = page.getByRole(
-      'textbox',
-      {
-        name: 'Incident Date',
-        exact: true
-      }
-    );
+    const incidentDate =
+      page.getByRole(
+        'textbox',
+        {
+          name: 'Incident Date',
+          exact: true
+        }
+      );
 
-    const dateDescription = page.getByRole(
-      'textbox',
-      {
-        name: 'Incident Date Description',
-        exact: true
-      }
-    );
+    const dateDescription =
+      page.getByRole(
+        'textbox',
+        {
+          name: 'Incident Date Description',
+          exact: true
+        }
+      );
 
     await expect(
       incidentDate
@@ -791,7 +786,7 @@ test(
       'No'
     );
 
-    // Exact date disappears
+    // Incident Date disappears
     await expect(
       incidentDate
     ).toBeHidden();
@@ -819,11 +814,6 @@ test(
     // Continue
     await submit.allegation.next();
 
-    await expect(
-      page.getByRole('heading', {
-        name: 'Person(s) Involved',
-        level: 2
-      })
-    ).toBeVisible();
+    await submit.personsInvolved.verifyLoaded();
   }
 );
