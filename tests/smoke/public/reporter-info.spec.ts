@@ -71,9 +71,15 @@ test(
     await submit.reporterInfo.verifyLoaded();
 
     await submit.reporterInfo.fill({
-      identityType: 'identified',
-      reporterCategory: 'Employee'
-    });
+  identityType: 'identified',
+  firstName: 'Ahmed',
+  lastName: 'Ali',
+  company: 'Red Sea Global',
+  department: 'Quality Assurance',
+  position: 'QA Engineer',
+  mobile: '0500000000',
+  email: 'qa.automation@example.com'
+});
 
     await submit.reporterInfo.next();
 
