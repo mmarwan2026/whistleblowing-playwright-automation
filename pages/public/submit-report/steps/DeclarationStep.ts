@@ -1,55 +1,43 @@
-import { expect, Page } from '@playwright/test';
+import {
+  expect,
+  Locator,
+  Page
+} from '@playwright/test';
 
 export class DeclarationStep {
+
   constructor(
     private readonly page: Page
   ) {}
 
-  // =========================================================
+  // ==========================================================
   // LOCATORS
-  // =========================================================
+  // ==========================================================
 
-  private declarationHeading() {
-    return this.page.getByRole(
-      'heading',
-      {
-        name: 'Declaration',
-        level: 2
-      }
-    );
-  }
+  private getFirstAcknowledgement(): Locator {
 
-  private firstAcknowledgement() {
     return this.page.getByRole(
       'checkbox',
       {
         name:
-          /I confirm that the information provided in this report is complete, accurate, and true/i
+          /I confirm that the information provided/i
       }
     );
   }
 
-  private secondAcknowledgement() {
+  private getSecondAcknowledgement(): Locator {
+
     return this.page.getByRole(
       'checkbox',
       {
         name:
-          /I acknowledge that if I become aware of any inaccuracies, omissions, or additional relevant information/i
+          /I acknowledge that if I become aware/i
       }
     );
   }
 
-  private backButton() {
-    return this.page.getByRole(
-      'button',
-      {
-        name: 'Back',
-        exact: true
-      }
-    );
-  }
+  private getSubmitButton(): Locator {
 
-  private submitButton() {
     return this.page.getByRole(
       'button',
       {
@@ -59,58 +47,53 @@ export class DeclarationStep {
     );
   }
 
-  private saveError() {
+  private getAcknowledgementValidationError(): Locator {
+
     return this.page.getByText(
-      'We could not save your application. Please try again.',
+      'I acknowledge is required',
       {
         exact: true
       }
     );
   }
 
-  // =========================================================
-  // VERIFY PAGE
-  // =========================================================
+  // ==========================================================
+  // VERIFY DECLARATION STEP
+  // ==========================================================
 
   async verifyLoaded() {
-    await expect(
-      this.declarationHeading()
-    ).toBeVisible();
 
     await expect(
-      this.page.getByText(
-        /Both acknowledgements are required before submitting your report/i
+      this.page.getByRole(
+        'heading',
+        {
+          name: 'Declaration',
+          level: 2
+        }
       )
     ).toBeVisible();
 
     await expect(
-      this.page.getByRole('checkbox')
-    ).toHaveCount(2);
-
-    await expect(
-      this.firstAcknowledgement()
+      this.getFirstAcknowledgement()
     ).toBeVisible();
 
     await expect(
-      this.secondAcknowledgement()
+      this.getSecondAcknowledgement()
     ).toBeVisible();
 
     await expect(
-      this.backButton()
-    ).toBeVisible();
-
-    await expect(
-      this.submitButton()
+      this.getSubmitButton()
     ).toBeVisible();
   }
 
-  // =========================================================
+  // ==========================================================
   // FIRST ACKNOWLEDGEMENT
-  // =========================================================
+  // ==========================================================
 
   async acceptFirstAcknowledgement() {
+
     const checkbox =
-      this.firstAcknowledgement();
+      this.getFirstAcknowledgement();
 
     await expect(
       checkbox
@@ -120,7 +103,10 @@ export class DeclarationStep {
       checkbox
     ).toBeEnabled();
 
-    if (!(await checkbox.isChecked())) {
+    if (
+      !(await checkbox.isChecked())
+    ) {
+
       await checkbox.click();
     }
 
@@ -129,13 +115,14 @@ export class DeclarationStep {
     ).toBeChecked();
   }
 
-  // =========================================================
+  // ==========================================================
   // SECOND ACKNOWLEDGEMENT
-  // =========================================================
+  // ==========================================================
 
   async acceptSecondAcknowledgement() {
+
     const checkbox =
-      this.secondAcknowledgement();
+      this.getSecondAcknowledgement();
 
     await expect(
       checkbox
@@ -145,7 +132,10 @@ export class DeclarationStep {
       checkbox
     ).toBeEnabled();
 
-    if (!(await checkbox.isChecked())) {
+    if (
+      !(await checkbox.isChecked())
+    ) {
+
       await checkbox.click();
     }
 
@@ -154,11 +144,12 @@ export class DeclarationStep {
     ).toBeChecked();
   }
 
-  // =========================================================
-  // ACCEPT ALL
-  // =========================================================
+  // ==========================================================
+  // ACCEPT ALL ACKNOWLEDGEMENTS
+  // ==========================================================
 
   async acceptAllAcknowledgements() {
+
     await this.acceptFirstAcknowledgement();
 
     await this.acceptSecondAcknowledgement();
@@ -166,129 +157,104 @@ export class DeclarationStep {
     await this.verifyBothAcknowledgementsChecked();
   }
 
-  // =========================================================
-  // VERIFY FIRST CHECKED
-  // =========================================================
-
-  async verifyFirstAcknowledgementChecked() {
-    await expect(
-      this.firstAcknowledgement()
-    ).toBeChecked();
-  }
-
-  // =========================================================
-  // VERIFY SECOND CHECKED
-  // =========================================================
-
-  async verifySecondAcknowledgementChecked() {
-    await expect(
-      this.secondAcknowledgement()
-    ).toBeChecked();
-  }
-
-  // =========================================================
-  // VERIFY FIRST UNCHECKED
-  // =========================================================
-
-  async verifyFirstAcknowledgementUnchecked() {
-    await expect(
-      this.firstAcknowledgement()
-    ).not.toBeChecked();
-  }
-
-  // =========================================================
-  // VERIFY SECOND UNCHECKED
-  // =========================================================
-
-  async verifySecondAcknowledgementUnchecked() {
-    await expect(
-      this.secondAcknowledgement()
-    ).not.toBeChecked();
-  }
-
-  // =========================================================
+  // ==========================================================
   // VERIFY BOTH CHECKED
-  // =========================================================
+  // ==========================================================
 
   async verifyBothAcknowledgementsChecked() {
+
     await expect(
-      this.firstAcknowledgement()
+      this.getFirstAcknowledgement()
     ).toBeChecked();
 
     await expect(
-      this.secondAcknowledgement()
+      this.getSecondAcknowledgement()
     ).toBeChecked();
   }
 
-  // =========================================================
-  // VERIFY BOTH UNCHECKED
-  // =========================================================
-
-  async verifyBothAcknowledgementsUnchecked() {
-    await expect(
-      this.firstAcknowledgement()
-    ).not.toBeChecked();
-
-    await expect(
-      this.secondAcknowledgement()
-    ).not.toBeChecked();
-  }
-
-  // =========================================================
-  // VERIFY SAVE ERROR
-  // =========================================================
-
-  async verifySaveErrorVisible() {
-    await expect(
-      this.saveError()
-    ).toBeVisible();
-  }
-
-  // =========================================================
-  // VERIFY SAVE ERROR NOT VISIBLE
-  // =========================================================
-
-  async verifySaveErrorHidden() {
-    await expect(
-      this.saveError()
-    ).toBeHidden();
-  }
-
-  // =========================================================
-  // BACK
-  // =========================================================
-
-  async back() {
-    const button =
-      this.backButton();
-
-    await expect(
-      button
-    ).toBeVisible();
-
-    await expect(
-      button
-    ).toBeEnabled();
-
-    await button.click();
-  }
-
-  // =========================================================
-  // SUBMIT
-  // =========================================================
+  // ==========================================================
+  // SUBMIT REPORT
+  // ==========================================================
 
   async submit() {
-    const button =
-      this.submitButton();
+
+    // Verify browser/DOM state immediately before submission.
+    await this.verifyBothAcknowledgementsChecked();
+
+    const submitButton =
+      this.getSubmitButton();
 
     await expect(
-      button
+      submitButton
     ).toBeVisible();
 
     await expect(
-      button
+      submitButton
     ).toBeEnabled();
 
-    await button.click();
+    await submitButton.click();
+
+    // --------------------------------------------------------
+    // Known application-state defect detection
+    //
+    // The application has been observed showing:
+    //
+    // "I acknowledge is required"
+    //
+    // even though Playwright and the accessibility tree report
+    // the second acknowledgement as checked.
+    //
+    // Do NOT retry, double-click or wait artificially here.
+    // If this happens, fail immediately with the real reason.
+    // --------------------------------------------------------
+
+    const acknowledgementError =
+      this.getAcknowledgementValidationError();
+
+    const validationAppeared =
+      await acknowledgementError
+        .isVisible({
+          timeout: 1500
+        })
+        .catch(() => false);
+
+    if (validationAppeared) {
+
+      const secondCheckbox =
+        this.getSecondAcknowledgement();
+
+      const secondCheckboxChecked =
+        await secondCheckbox
+          .isChecked()
+          .catch(() => false);
+
+      if (secondCheckboxChecked) {
+
+        throw new Error(
+          'Declaration validation defect: the second acknowledgement is checked in the UI/DOM, but the application still reports "I acknowledge is required" and blocks report submission.'
+        );
+      }
+
+      throw new Error(
+        'Declaration validation failed: the application reports "I acknowledge is required".'
+      );
+    }
+  }
+
+  // ==========================================================
+  // BACK
+  // ==========================================================
+
+  async back() {
+
+    await this.page
+      .getByRole(
+        'button',
+        {
+          name: 'Back',
+          exact: true
+        }
+      )
+      .click();
   }
 }

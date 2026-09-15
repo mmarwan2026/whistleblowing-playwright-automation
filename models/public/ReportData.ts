@@ -11,9 +11,14 @@ export interface ReportData {
   reporter: ReporterInfoData;
   classification: ClassificationData;
   allegation: AllegationData;
-  personsInvolved: PersonInvolvedData[];
-  witnesses: WitnessData[];
+
+  personsInvolved: PersonInvolvedData;
+
+  witnesses: WitnessData;
+
   evidence: EvidenceData;
+
   previousReporting: PreviousReportingData;
+
   declaration: DeclarationData;
 }

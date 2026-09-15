@@ -1,18 +1,33 @@
 import { AllegationData } from '../../models/public/AllegationData';
 
 export class AllegationFactory {
+
   static default(): AllegationData {
-    const today = new Date().toISOString().slice(0, 10);
 
     return {
-      whatHappened: `Automation allegation ${Date.now()}`,
-      ruleViolation: 'Internal policy violation',
-      awareness: 'Observed during normal business activity',
-      incidentDate: today,
-      incidentDateDescription: 'Automation-generated incident date',
-      numberOfIndividuals: 1,
-      incidentLocation: 'Head Office',
-      ongoing: false
+      incidentTitle:
+        'Potential conflict of interest',
+
+      whatHappened:
+        'An employee may have participated in a decision involving a related party.',
+
+      rulePolicyLaw:
+        'Conflict of Interest Policy',
+
+      awarenessMethod:
+        'I became aware through internal business communication.',
+
+      incidentLocation:
+        'Corporate Office',
+
+      knowsExactDate:
+        'No',
+
+      incidentDateDescription:
+        'September 2026',
+
+      ongoing:
+        'No'
     };
   }
 }
