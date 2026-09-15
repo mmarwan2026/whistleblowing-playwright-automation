@@ -1,4 +1,4 @@
 export interface EvidenceData {
-  filePaths: string[];
-  description?: string;
+  hasSupportingEvidence: 'Yes' | 'No';
+  filePaths?: string[];
 }
