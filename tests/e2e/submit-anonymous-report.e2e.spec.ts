@@ -4,7 +4,7 @@ import { SubmitReportPage } from '../../pages/public/submit-report/SubmitReportP
 import { ReportingNoticePage } from '../../pages/public/ReportingNoticePage';
 
 test.describe(
-  'Submit Report - End to End',
+  'Anonymous Report Submission - E2E',
   () => {
 
     test(

@@ -9,7 +9,7 @@ import {
 } from '../../pages/public/ReportingNoticePage';
 
 test.describe(
-  'Submit Report - Full Detailed E2E',
+  'Full Report Submission - E2E',
   () => {
 
     test(
