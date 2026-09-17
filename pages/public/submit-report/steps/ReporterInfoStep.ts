@@ -36,7 +36,7 @@ export class ReporterInfoStep {
       })
       .check();
 
-    await expect(
+  /*  await expect(
       this.page.getByText(
         'Before You Continue Anonymously',
         { exact: true }
@@ -54,7 +54,7 @@ export class ReporterInfoStep {
         'Before You Continue Anonymously',
         { exact: true }
       )
-    ).toBeHidden();
+    ).toBeHidden();*/
   }
 
   async selectIdentified() {

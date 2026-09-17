@@ -954,3 +954,246 @@ test(
     );
   }
 );
+// ============================================================
+// ADDITIONAL PREVIOUS REPORTING COVERAGE
+// TC-054 -> TC-067
+// ============================================================
+
+test(
+  'TC-054 | Previously Reported is mandatory @public @intake @validation',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.next();
+
+    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
+    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
+  }
+);
+
+test(
+  'TC-055 | System Reference answer is mandatory when Previously Reported is Yes @public @intake @validation',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.verifySystemReferenceQuestionVisible();
+    await submit.previousReporting.next();
+
+    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
+    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
+  }
+);
+
+test(
+  'TC-056 | Exact Date answer is mandatory when Previously Reported is Yes @public @intake @validation',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
+    await submit.previousReporting.next();
+
+    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
+    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
+  }
+);
+
+test(
+  'TC-057 | Date Description is mandatory when Exact Date is No @public @intake @validation',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
+    await submit.previousReporting.selectExactDate('No');
+    await submit.previousReporting.verifyDateDescriptionVisible();
+    await submit.previousReporting.next();
+
+    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
+    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
+  }
+);
+
+test(
+  'TC-058 | First Name is individually mandatory when System Reference is No @public @intake @validation',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+    await submit.previousReporting.fillLastName('Mohamed');
+    await submit.previousReporting.selectExactDate('No');
+    await submit.previousReporting.fillDateDescription('Approximately August 2026.');
+    await submit.previousReporting.next();
+
+    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
+    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
+  }
+);
+
+test(
+  'TC-059 | Last Name is individually mandatory when System Reference is No @public @intake @validation',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+    await submit.previousReporting.fillFirstName('Ahmed');
+    await submit.previousReporting.selectExactDate('No');
+    await submit.previousReporting.fillDateDescription('Approximately August 2026.');
+    await submit.previousReporting.next();
+
+    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
+    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
+  }
+);
+
+test(
+  'TC-060 | Mandatory recipient fields reject whitespace-only values @public @intake @validation',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+    await submit.previousReporting.fillFirstName('   ');
+    await submit.previousReporting.fillLastName('   ');
+    await submit.previousReporting.selectExactDate('No');
+    await submit.previousReporting.fillDateDescription('Approximately August 2026.');
+    await submit.previousReporting.next();
+
+    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
+    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
+  }
+);
+
+test(
+  'TC-061 | System Reference No to Yes updates conditional fields correctly @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+    await submit.previousReporting.verifyToWhomVisible();
+
+    await submit.previousReporting.selectSystemReferenceAnswer('Yes');
+    await submit.previousReporting.verifyReferenceNumberVisible();
+
+    await expect(page.getByRole('textbox', { name: /^First Name/i })).toBeHidden();
+    await expect(page.getByRole('textbox', { name: /^Last Name/i })).toBeHidden();
+  }
+);
+
+test(
+  "TC-062 | System Reference Yes to I don't remember updates conditional fields correctly @public @intake",
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('Yes');
+    await submit.previousReporting.verifyReferenceNumberVisible();
+
+    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
+
+    await expect(page.getByRole('textbox', { name: /Previously Reported Incident Reference Number/i })).toBeHidden();
+    await expect(page.getByRole('textbox', { name: 'Relevant Info', exact: true })).toBeVisible();
+  }
+);
+
+test(
+  'TC-063 | Exact Date No to Yes hides Date Description and displays Date of Reporting @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
+    await submit.previousReporting.selectExactDate('No');
+    await submit.previousReporting.verifyDateDescriptionVisible();
+
+    await submit.previousReporting.selectExactDate('Yes');
+    await submit.previousReporting.verifyReportingDateVisible();
+    await expect(page.getByRole('textbox', { name: /Date Description/i })).toBeHidden();
+  }
+);
+
+test(
+  'TC-064 | Previous Reporting No to Yes displays previous reporting detail questions @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('No');
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.verifySystemReferenceQuestionVisible();
+  }
+);
+
+test(
+  'TC-065 | Previous Reporting accepts Arabic Unicode recipient data @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+    await submit.previousReporting.fillFirstName('أحمد');
+    await submit.previousReporting.fillLastName('محمد');
+    await submit.previousReporting.fillPositionDepartment('إدارة المراجعة الداخلية');
+    await submit.previousReporting.selectExactDate('No');
+    await submit.previousReporting.fillDateDescription('تم الإبلاغ تقريباً خلال أغسطس 2026.');
+    await submit.previousReporting.next();
+
+    await expect(page.getByRole('heading', { name: 'Declaration', level: 2 })).toBeVisible();
+  }
+);
+
+test(
+  'TC-066 | Previous Reporting accepts supported punctuation in free-text fields @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
+    await submit.previousReporting.fillRelevantInfo("Reported via email / hotline - follow-up #1 (internal).");
+    await submit.previousReporting.fillOutcome('Reviewed; status: pending/follow-up.');
+    await submit.previousReporting.selectExactDate('No');
+    await submit.previousReporting.fillDateDescription('Approx. Aug/Sep 2026 (exact date unknown).');
+    await submit.previousReporting.next();
+
+    await expect(page.getByRole('heading', { name: 'Declaration', level: 2 })).toBeVisible();
+  }
+);
+
+// Boundary/max-length behavior must be based on an approved field-length rule.
+// Keep this visible in the suite without inventing an unsupported requirement.
+test.skip(
+  'TC-067 | Previous Reporting field max-length boundary validation @public @intake @validation',
+  async () => {
+    // TODO: Enable after the approved max lengths for Reference Number,
+    // Relevant Info, Outcome, recipient fields, and Date Description are confirmed.
+  }
+);
