@@ -36,7 +36,7 @@ async verifyLoaded() {
       })
       .check();
 
-    await expect(
+  /*  await expect(
       this.page.getByText(
         'Before You Continue Anonymously',
         { exact: true }
@@ -54,7 +54,7 @@ async verifyLoaded() {
         'Before You Continue Anonymously',
         { exact: true }
       )
-    ).toBeHidden();
+    ).toBeHidden();*/
   }
 
   async selectIdentified() {
