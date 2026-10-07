@@ -1,13 +1,24 @@
-import { expect, Page } from '@playwright/test';
-import { AllegationData } from '../../../../models/public/AllegationData';
+import {
+  expect,
+  Page
+} from '@playwright/test';
+
+import {
+  AllegationData
+} from '../../../../models/public/AllegationData';
 
 export class AllegationStep {
-  constructor(private readonly page: Page) {}
 
-  // =========================================================
+  constructor(
+    private readonly page: Page
+  ) { }
+
+  // ==========================================================
   // VERIFY PAGE
-  // =========================================================
-  async verifyLoaded() {
+  // ==========================================================
+
+  async verifyLoaded(): Promise<void> {
+
     await expect(
       this.page.getByRole('heading', {
         name: 'Allegation',
@@ -37,202 +48,336 @@ export class AllegationStep {
     ).toBeVisible();
   }
 
-  // =========================================================
+  // ==========================================================
   // INCIDENT TITLE
-  // =========================================================
-  async fillIncidentTitle(value: string) {
-    const field = this.page.getByRole('textbox', {
-      name: 'Incident Title',
-      exact: true
-    });
+  // ==========================================================
+
+  async fillIncidentTitle(
+    value: string
+  ): Promise<void> {
+
+    const field =
+      this.page.getByRole('textbox', {
+        name: 'Incident Title',
+        exact: true
+      });
 
     await expect(field).toBeVisible();
+
     await field.fill(value);
 
-    await expect(field).toHaveValue(value);
+    await expect(
+      field
+    ).toHaveValue(value);
   }
 
-  // =========================================================
+  // ==========================================================
   // WHAT HAPPENED
-  // =========================================================
-  async fillWhatHappened(value: string) {
-    const field = this.page.getByRole('textbox', {
-      name: 'What Happened?',
-      exact: true
-    });
+  // ==========================================================
+
+  async fillWhatHappened(
+    value: string
+  ): Promise<void> {
+
+    const field =
+      this.page.getByRole('textbox', {
+        name: 'What Happened?',
+        exact: true
+      });
 
     await expect(field).toBeVisible();
+
     await field.fill(value);
 
-    await expect(field).toHaveValue(value);
+    await expect(
+      field
+    ).toHaveValue(value);
   }
 
-  // =========================================================
+  // ==========================================================
   // RULE / POLICY / LAW
-  // =========================================================
-  async fillRulePolicyLaw(value: string) {
-    const field = this.page.getByRole('textbox', {
-      name: 'What Rule, Policy, or Law May Have Been Violated?',
-      exact: true
-    });
+  // ==========================================================
+
+  async fillRulePolicyLaw(
+    value: string
+  ): Promise<void> {
+
+    const field =
+      this.page.getByRole('textbox', {
+        name:
+          'What Rule, Policy, or Law May Have Been Violated?',
+        exact: true
+      });
 
     await expect(field).toBeVisible();
+
     await field.fill(value);
 
-    await expect(field).toHaveValue(value);
+    await expect(
+      field
+    ).toHaveValue(value);
   }
 
-  // =========================================================
+  // ==========================================================
   // AWARENESS METHOD
-  // =========================================================
-  async fillAwarenessMethod(value: string) {
-    const field = this.page.getByRole('textbox', {
-      name: 'How Did You Become Aware of the Issue?',
-      exact: true
-    });
+  // ==========================================================
+
+  async fillAwarenessMethod(
+    value: string
+  ): Promise<void> {
+
+    const field =
+      this.page.getByRole('textbox', {
+        name:
+          'How Did You Become Aware of the Issue?',
+        exact: true
+      });
 
     await expect(field).toBeVisible();
+
     await field.fill(value);
 
-    await expect(field).toHaveValue(value);
+    await expect(
+      field
+    ).toHaveValue(value);
   }
 
-  // =========================================================
+  // ==========================================================
   // INCIDENT LOCATION
-  // =========================================================
-  async fillIncidentLocation(value: string) {
-    const field = this.page.getByRole('textbox', {
-      name: 'Incident Location',
-      exact: true
-    });
+  // ==========================================================
+
+  async fillIncidentLocation(
+    value: string
+  ): Promise<void> {
+
+    const field =
+      this.page.getByRole('textbox', {
+        name: 'Incident Location',
+        exact: true
+      });
 
     await expect(field).toBeVisible();
+
     await field.fill(value);
 
-    await expect(field).toHaveValue(value);
+    await expect(
+      field
+    ).toHaveValue(value);
   }
 
-  // =========================================================
+  // ==========================================================
   // EXACT DATE
-  // =========================================================
-  async selectExactDate(answer: 'Yes' | 'No') {
-    const exactDateGroup = this.page
-      .getByRole('radiogroup')
-      .first();
+  // ==========================================================
 
-    const radio = exactDateGroup.getByRole('radio', {
-      name: answer,
-      exact: true
-    });
+  async selectExactDate(
+    answer: 'Yes' | 'No'
+  ): Promise<void> {
 
-    await expect(radio).toBeVisible();
+    const exactDateGroup =
+      this.page
+        .getByRole('radiogroup')
+        .first();
+
+    const radio =
+      exactDateGroup.getByRole(
+        'radio',
+        {
+          name: answer,
+          exact: true
+        }
+      );
+
+    await expect(
+      radio
+    ).toBeVisible();
 
     await radio.check();
 
-    await expect(radio).toBeChecked();
+    await expect(
+      radio
+    ).toBeChecked();
 
-    // ---------------------------------------------------------
+    // --------------------------------------------------------
     // YES -> Incident Date appears
-    // ---------------------------------------------------------
+    // --------------------------------------------------------
+
     if (answer === 'Yes') {
-      const incidentDate = this.page.getByRole('textbox', {
-        name: 'Incident Date',
-        exact: true
-      });
 
-      await expect(incidentDate).toBeVisible();
+      const incidentDate =
+        this.page.getByRole(
+          'textbox',
+          {
+            name: 'Incident Date',
+            exact: true
+          }
+        );
 
-      const dateDescription = this.page.getByRole('textbox', {
-        name: 'Incident Date Description',
-        exact: true
-      });
+      const dateDescription =
+        this.page.getByRole(
+          'textbox',
+          {
+            name:
+              'Incident Date Description',
+            exact: true
+          }
+        );
 
-      await expect(dateDescription).toBeHidden();
+      await expect(
+        incidentDate
+      ).toBeVisible();
+
+      await expect(
+        dateDescription
+      ).toBeHidden();
+
+      return;
     }
 
-    // ---------------------------------------------------------
+    // --------------------------------------------------------
     // NO -> Incident Date Description appears
-    // ---------------------------------------------------------
-    if (answer === 'No') {
-      const incidentDate = this.page.getByRole('textbox', {
-        name: 'Incident Date',
-        exact: true
-      });
+    // --------------------------------------------------------
 
-      await expect(incidentDate).toBeHidden();
+    const incidentDate =
+      this.page.getByRole(
+        'textbox',
+        {
+          name: 'Incident Date',
+          exact: true
+        }
+      );
 
-      const dateDescription = this.page.getByRole('textbox', {
-        name: 'Incident Date Description',
-        exact: true
-      });
+    const dateDescription =
+      this.page.getByRole(
+        'textbox',
+        {
+          name:
+            'Incident Date Description',
+          exact: true
+        }
+      );
 
-      await expect(dateDescription).toBeVisible();
-    }
+    await expect(
+      incidentDate
+    ).toBeHidden();
+
+    await expect(
+      dateDescription
+    ).toBeVisible();
   }
 
-  // =========================================================
+  // ==========================================================
   // INCIDENT DATE
+  //
   // input type="date"
-  // Value format must be YYYY-MM-DD
-  // Example: 2026-09-13
-  // =========================================================
-  async fillIncidentDate(value: string) {
-    const incidentDate = this.page.getByRole('textbox', {
-      name: 'Incident Date',
-      exact: true
-    });
+  // Expected format: YYYY-MM-DD
+  // ==========================================================
 
-    await expect(incidentDate).toBeVisible();
+  async fillIncidentDate(
+    value: string
+  ): Promise<void> {
 
-    await incidentDate.fill(value);
+    const field =
+      this.page.getByRole(
+        'textbox',
+        {
+          name: 'Incident Date',
+          exact: true
+        }
+      );
 
-    await expect(incidentDate).toHaveValue(value);
-  }
-
-  // =========================================================
-  // INCIDENT DATE DESCRIPTION
-  // Visible when Exact Date = No
-  // =========================================================
-  async fillIncidentDateDescription(value: string) {
-    const field = this.page.getByRole('textbox', {
-      name: 'Incident Date Description',
-      exact: true
-    });
-
-    await expect(field).toBeVisible();
+    await expect(
+      field
+    ).toBeVisible();
 
     await field.fill(value);
 
-    await expect(field).toHaveValue(value);
+    await expect(
+      field
+    ).toHaveValue(value);
   }
 
-  // =========================================================
+  // ==========================================================
+  // INCIDENT DATE DESCRIPTION
+  //
+  // Visible when Exact Date = No
+  // ==========================================================
+
+  async fillIncidentDateDescription(
+    value: string
+  ): Promise<void> {
+
+    const field =
+      this.page.getByRole(
+        'textbox',
+        {
+          name:
+            'Incident Date Description',
+          exact: true
+        }
+      );
+
+    await expect(
+      field
+    ).toBeVisible();
+
+    await field.fill(value);
+
+    await expect(
+      field
+    ).toHaveValue(value);
+  }
+
+  // ==========================================================
   // ISSUE STILL ONGOING
-  // =========================================================
+  // ==========================================================
+
   async selectOngoing(
-    answer: 'Yes' | 'No' | "I don't know"
-  ) {
-    const group = this.page.getByRole('radiogroup', {
-      name: 'Is Incident Ongoing?'
-    });
+    answer:
+      | 'Yes'
+      | 'No'
+      | "Unknown"
+  ): Promise<void> {
 
-    const radio = group.getByRole('radio', {
-      name: answer,
-      exact: true
-    });
+    const group =
+      this.page.getByRole(
+        'radiogroup',
+        {
+          name: 'Is Incident Ongoing?'
+        }
+      );
 
-    await expect(radio).toBeVisible();
+    const radio =
+      group.getByRole(
+        'radio',
+        {
+          name: answer,
+          exact: true
+        }
+      );
+
+    await expect(
+      radio
+    ).toBeVisible();
 
     await radio.check();
 
-    await expect(radio).toBeChecked();
+    await expect(
+      radio
+    ).toBeChecked();
   }
 
-  // =========================================================
+  // ==========================================================
   // FILL COMPLETE ALLEGATION
-  // =========================================================
-  async fill(data: AllegationData) {
-    // Required
+  // ==========================================================
+
+  async fill(
+    data: AllegationData
+  ): Promise<void> {
+
+    // --------------------------------------------------------
+    // REQUIRED
+    // --------------------------------------------------------
+
     await this.fillIncidentTitle(
       data.incidentTitle
     );
@@ -245,7 +390,10 @@ export class AllegationStep {
       data.awarenessMethod
     );
 
-    // Optional
+    // --------------------------------------------------------
+    // OPTIONAL
+    // --------------------------------------------------------
+
     if (data.rulePolicyLaw) {
       await this.fillRulePolicyLaw(
         data.rulePolicyLaw
@@ -258,15 +406,16 @@ export class AllegationStep {
       );
     }
 
-    // =======================================================
-    // Exact Date logic
-    // =======================================================
+    // --------------------------------------------------------
+    // EXACT DATE
+    // --------------------------------------------------------
+
     if (data.knowsExactDate) {
+
       await this.selectExactDate(
         data.knowsExactDate
       );
 
-      // YES -> fill exact date
       if (
         data.knowsExactDate === 'Yes' &&
         data.incidentDate
@@ -276,7 +425,6 @@ export class AllegationStep {
         );
       }
 
-      // NO -> fill date description
       if (
         data.knowsExactDate === 'No' &&
         data.incidentDateDescription
@@ -287,9 +435,10 @@ export class AllegationStep {
       }
     }
 
-    // =======================================================
-    // Ongoing
-    // =======================================================
+    // --------------------------------------------------------
+    // ONGOING
+    // --------------------------------------------------------
+
     if (data.ongoing) {
       await this.selectOngoing(
         data.ongoing
@@ -297,39 +446,37 @@ export class AllegationStep {
     }
   }
 
-  // =========================================================
+  // ==========================================================
   // NEXT
-  // =========================================================
-  async next() {
-    const nextButton = this.page.getByRole(
-      'button',
-      {
-        name: 'Next',
-        exact: true
-      }
-    );
+  // ==========================================================
 
-    await expect(nextButton).toBeVisible();
-    await expect(nextButton).toBeEnabled();
+  async next(): Promise<void> {
 
-    await nextButton.click();
+    await this.page
+      .getByRole(
+        'button',
+        {
+          name: 'Next',
+          exact: true
+        }
+      )
+      .click();
   }
 
-  // =========================================================
+  // ==========================================================
   // BACK
-  // =========================================================
-  async back() {
-    const backButton = this.page.getByRole(
-      'button',
-      {
-        name: 'Back',
-        exact: true
-      }
-    );
+  // ==========================================================
 
-    await expect(backButton).toBeVisible();
-    await expect(backButton).toBeEnabled();
+  async back(): Promise<void> {
 
-    await backButton.click();
+    await this.page
+      .getByRole(
+        'button',
+        {
+          name: 'Back',
+          exact: true
+        }
+      )
+      .click();
   }
 }

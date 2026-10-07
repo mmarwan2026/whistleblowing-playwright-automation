@@ -11,6 +11,17 @@ import {
   ReportingNoticePage
 } from '../../../pages/public/ReportingNoticePage';
 
+
+// ============================================================
+// REPORTER INFO
+// ============================================================
+
+
+// ============================================================
+// TC-001
+// Anonymous Reporter Happy Path
+// ============================================================
+
 test(
   'TC-001 | Anonymous reporter can continue to Classification @smoke @public @intake',
   async ({ page }) => {
@@ -21,32 +32,36 @@ test(
     const notice =
       new ReportingNoticePage(page);
 
-    // 1. Open public portal
+    // --------------------------------------------------------
+    // Open public portal
+    // --------------------------------------------------------
+
     await submit.open();
 
-    // 2. Reporting & Confidentiality Notice
-    await notice.verifyLoaded();
+    // --------------------------------------------------------
+    // Reporting & Confidentiality Notice
+    // --------------------------------------------------------
 
-    // 3. Continue
+    await notice.verifyLoaded();
     await notice.next();
 
-    // 4. Reporter Info
-    await submit
-      .reporterInfo
-      .verifyLoaded();
+    // --------------------------------------------------------
+    // Reporter Info
+    // --------------------------------------------------------
 
-    // 5. Anonymous + Modal + Category
+    await submit.reporterInfo.verifyLoaded();
+
     await submit.reporterInfo.fill({
       identityType: 'anonymous',
       reporterCategory: 'Employee'
     });
 
-    // 6. Continue
-    await submit
-      .reporterInfo
-      .next();
+    await submit.reporterInfo.next();
 
-    // 7. Classification page
+    // --------------------------------------------------------
+    // Classification
+    // --------------------------------------------------------
+
     await expect(
       page.getByRole('heading', {
         name: 'Classification',
@@ -56,12 +71,21 @@ test(
   }
 );
 
+
+// ============================================================
+// TC-002
+// Identified Reporter Happy Path
+// ============================================================
+
 test(
   'TC-002 | Identified reporter can continue to Classification @smoke @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
 
     await submit.open();
 
@@ -71,15 +95,25 @@ test(
     await submit.reporterInfo.verifyLoaded();
 
     await submit.reporterInfo.fill({
-  identityType: 'identified',
-  firstName: 'Ahmed',
-  lastName: 'Ali',
-  company: 'Red Sea Global',
-  department: 'Quality Assurance',
-  position: 'QA Engineer',
-  mobile: '0500000000',
-  email: 'qa.automation@example.com'
-});
+      identityType: 'identified',
+
+      firstName: 'Ahmed',
+      lastName: 'Ali',
+
+      company: 'Red Sea Global',
+
+      department:
+        'Quality Assurance',
+
+      position:
+        'QA Engineer',
+
+      mobile:
+        '0500000000',
+
+      email:
+        'qa.automation@example.com'
+    });
 
     await submit.reporterInfo.next();
 
@@ -91,42 +125,67 @@ test(
     ).toBeVisible();
   }
 );
+
+
+// ============================================================
+// TC-003
+// Reporter Category Mandatory
+// ============================================================
+
 test(
   'TC-003 | Reporter Category is mandatory @regression @validation @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
 
-    // 1. Open public portal
+    const notice =
+      new ReportingNoticePage(page);
+
+    // --------------------------------------------------------
+    // Open public portal
+    // --------------------------------------------------------
+
     await submit.open();
 
-    // 2. Reporting & Confidentiality Notice
     await notice.verifyLoaded();
     await notice.next();
 
-    // 3. Verify Reporter Info loaded
+    // --------------------------------------------------------
+    // Reporter Info
+    // --------------------------------------------------------
+
     await submit.reporterInfo.verifyLoaded();
 
-    // 4. Select Anonymous
+    // Select Anonymous
     await submit.reporterInfo.selectAnonymous();
 
-    // 5. Do NOT select Reporter Category
+    // Reporter Category intentionally empty
     await submit.reporterInfo.next();
 
-    // 6. Verify general validation alert
+    // --------------------------------------------------------
+    // General validation
+    // --------------------------------------------------------
+
     await expect(
       page.getByRole('alert').filter({
-        hasText: 'Please complete all mandatory fields'
+        hasText:
+          'Please complete all mandatory fields'
       })
     ).toBeVisible();
 
-    // 7. Verify Reporter Category is invalid
-    const reporterCategory = page.getByRole('combobox', {
-      name: 'Reporter Category'
-    });
+    // --------------------------------------------------------
+    // Reporter Category validation
+    // --------------------------------------------------------
 
-    await expect(reporterCategory).toBeVisible();
+    const reporterCategory =
+      page.getByRole('combobox', {
+        name: 'Reporter Category'
+      });
+
+    await expect(
+      reporterCategory
+    ).toBeVisible();
 
     await expect(
       reporterCategory
@@ -135,7 +194,10 @@ test(
       'true'
     );
 
-    // 8. Verify user remains on Reporter Info
+    // --------------------------------------------------------
+    // Must remain on Reporter Info
+    // --------------------------------------------------------
+
     await expect(
       page.getByRole('heading', {
         name: 'Reporter Info',
@@ -143,37 +205,53 @@ test(
       })
     ).toBeVisible();
   }
-);test(
+);
+
+
+// ============================================================
+// TC-004
+// Identity Selection Mandatory
+// ============================================================
+
+test(
   'TC-004 | Identity selection is mandatory @regression @validation @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
 
-    // 1. Open public portal
+    const notice =
+      new ReportingNoticePage(page);
+
     await submit.open();
 
-    // 2. Continue from Reporting Notice
     await notice.verifyLoaded();
     await notice.next();
 
-    // 3. Verify Reporter Info
     await submit.reporterInfo.verifyLoaded();
 
-    // 4. Do NOT select identity
-    // Do NOT select Reporter Category
+    // --------------------------------------------------------
+    // Identity intentionally NOT selected
+    // Reporter Category intentionally NOT selected
+    // --------------------------------------------------------
 
-    // 5. Click Next
     await submit.reporterInfo.next();
 
-    // 6. Verify validation alert
+    // --------------------------------------------------------
+    // Validation alert
+    // --------------------------------------------------------
+
     await expect(
       page.getByRole('alert').filter({
-        hasText: 'Please complete all mandatory fields'
+        hasText:
+          'Please complete all mandatory fields'
       })
     ).toBeVisible();
 
-    // 7. Verify no identity option was selected
+    // --------------------------------------------------------
+    // Neither identity option should be selected
+    // --------------------------------------------------------
+
     await expect(
       page.getByRole('radio', {
         name: 'Disclose my identity'
@@ -186,76 +264,10 @@ test(
       })
     ).not.toBeChecked();
 
-    // 8. Must remain on Reporter Info
-    await expect(
-      page.getByRole('heading', {
-        name: 'Reporter Info',
-        level: 2
-      })
-    ).toBeVisible();
-  }
-);test(
-  'TC-005 | Back button is disabled on Reporter Info first step @regression @navigation @public @intake',
-  async ({ page }) => {
+    // --------------------------------------------------------
+    // Remain on Reporter Info
+    // --------------------------------------------------------
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    // 1. Open public portal
-    await submit.open();
-
-    // 2. Continue from Reporting Notice
-    await notice.verifyLoaded();
-    await notice.next();
-
-    // 3. Verify Reporter Info
-    await submit.reporterInfo.verifyLoaded();
-
-    // 4. Verify Back button
-    const backButton = page.getByRole('button', {
-      name: 'Back'
-    });
-
-    await expect(backButton).toBeVisible();
-
-    // 5. Reporter Info is first wizard step,
-    // therefore Back must be disabled
-    await expect(backButton).toBeDisabled();
-
-    // 6. Verify we are still on Reporter Info
-    await expect(
-      page.getByRole('heading', {
-        name: 'Reporter Info',
-        level: 2
-      })
-    ).toBeVisible();
-  }
-);test(
-  'TC-006 | Quick Exit is available on Reporter Info @regression @security @public @intake',
-  async ({ page }) => {
-
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    // 1. Open public portal
-    await submit.open();
-
-    // 2. Continue from Reporting Notice
-    await notice.verifyLoaded();
-    await notice.next();
-
-    // 3. Verify Reporter Info
-    await submit.reporterInfo.verifyLoaded();
-
-    // 4. Verify Quick Exit
-    const quickExit = page.getByRole('button', {
-      name: 'QUICK EXIT (ESC)'
-    });
-
-    await expect(quickExit).toBeVisible();
-    await expect(quickExit).toBeEnabled();
-
-    // 5. Verify we are still on Reporter Info
     await expect(
       page.getByRole('heading', {
         name: 'Reporter Info',
@@ -264,3 +276,226 @@ test(
     ).toBeVisible();
   }
 );
+
+
+// ============================================================
+// TC-005
+// Back Button
+// ============================================================
+
+test(
+  'TC-005 | Back button is disabled on Reporter Info first step @regression @navigation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await submit.open();
+
+    await notice.verifyLoaded();
+    await notice.next();
+
+    await submit.reporterInfo.verifyLoaded();
+
+    // --------------------------------------------------------
+    // Back button
+    // --------------------------------------------------------
+
+    const backButton =
+      page.getByRole('button', {
+        name: 'Back'
+      });
+
+    await expect(
+      backButton
+    ).toBeVisible();
+
+    await expect(
+      backButton
+    ).toBeDisabled();
+
+    // --------------------------------------------------------
+    // Still Reporter Info
+    // --------------------------------------------------------
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Reporter Info',
+        level: 2
+      })
+    ).toBeVisible();
+  }
+);
+
+
+// ============================================================
+// TC-006
+// Quick Exit
+// ============================================================
+
+test(
+  'TC-006 | Quick Exit is available on Reporter Info @regression @security @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await submit.open();
+
+    await notice.verifyLoaded();
+    await notice.next();
+
+    await submit.reporterInfo.verifyLoaded();
+
+    // --------------------------------------------------------
+    // Quick Exit
+    // --------------------------------------------------------
+
+    const quickExit =
+      page.getByRole('button', {
+        name: 'QUICK EXIT (ESC)'
+      });
+
+    await expect(
+      quickExit
+    ).toBeVisible();
+
+    await expect(
+      quickExit
+    ).toBeEnabled();
+
+    // --------------------------------------------------------
+    // Still Reporter Info
+    // --------------------------------------------------------
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Reporter Info',
+        level: 2
+      })
+    ).toBeVisible();
+  }
+);
+
+
+// ============================================================
+// TC-007
+// Identified Reporter Mandatory Fields Discovery
+// ============================================================
+
+test(
+  'TC-007 | Identified reporter mandatory fields discovery @regression @validation @diagnostic',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await submit.open();
+
+    await notice.verifyLoaded();
+    await notice.next();
+
+    await submit.reporterInfo.verifyLoaded();
+
+    // --------------------------------------------------------
+    // Select Identified
+    // --------------------------------------------------------
+
+    await submit.reporterInfo.selectIdentified();
+
+    // --------------------------------------------------------
+    // Leave identified reporter fields empty
+    // --------------------------------------------------------
+
+    await submit.reporterInfo.next();
+
+    // --------------------------------------------------------
+    // General validation
+    // --------------------------------------------------------
+
+    await expect(
+      page.getByRole('alert').filter({
+        hasText:
+          'Please complete all mandatory fields'
+      })
+    ).toBeVisible();
+
+    // --------------------------------------------------------
+    // Must remain on Reporter Info
+    // --------------------------------------------------------
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Reporter Info',
+        level: 2
+      })
+    ).toBeVisible();
+
+    // --------------------------------------------------------
+    // Find invalid fields
+    // --------------------------------------------------------
+
+    const invalidFields =
+      page.locator(
+        '[aria-invalid="true"]'
+      );
+
+    const count =
+      await invalidFields.count();
+
+    console.log(
+      `\nIdentified mandatory field candidates: ${count}`
+    );
+
+    for (
+      let index = 0;
+      index < count;
+      index++
+    ) {
+
+      const field =
+        invalidFields.nth(index);
+
+      console.log({
+        index:
+          index + 1,
+
+        name:
+          await field.getAttribute(
+            'name'
+          ),
+
+        id:
+          await field.getAttribute(
+            'id'
+          ),
+
+        type:
+          await field.getAttribute(
+            'type'
+          ),
+
+        placeholder:
+          await field.getAttribute(
+            'placeholder'
+          ),
+
+        ariaLabel:
+          await field.getAttribute(
+            'aria-label'
+          )
+      });
+    }
+  }
+);
+
+

@@ -1,10 +1,26 @@
-import { expect, Page } from '@playwright/test';
-import { ReporterInfoData } from '../../../../models/public/ReporterData';
+import {
+  expect,
+  Page
+} from '@playwright/test';
+
+import {
+  ReporterInfoData
+} from '../../../../models/public/ReporterData';
+
 
 export class ReporterInfoStep {
-  constructor(private readonly page: Page) {}
 
-  async verifyLoaded() {
+  constructor(
+    private readonly page: Page
+  ) { }
+
+
+  // ==========================================================
+  // VERIFY LOADED
+  // ==========================================================
+
+  async verifyLoaded(): Promise<void> {
+
     await expect(
       this.page.getByRole('heading', {
         name: 'Reporter Info',
@@ -25,53 +41,94 @@ export class ReporterInfoStep {
     ).toBeVisible();
   }
 
+
   // ==========================================================
   // IDENTITY TYPE
   // ==========================================================
 
-  async selectAnonymous() {
-    await this.page
-      .getByRole('radio', {
+  async selectAnonymous(): Promise<void> {
+
+    const anonymousRadio =
+      this.page.getByRole('radio', {
         name: 'Remain anonymous'
-      })
-      .check();
+      });
 
-  /*  await expect(
-      this.page.getByText(
-        'Before You Continue Anonymously',
-        { exact: true }
-      )
-    ).toBeVisible();
-
-    await this.page
-      .getByRole('button', {
-        name: 'Close'
-      })
-      .click();
+    await anonymousRadio.check();
 
     await expect(
-      this.page.getByText(
-        'Before You Continue Anonymously',
-        { exact: true }
-      )
-    ).toBeHidden();*/
+      anonymousRadio
+    ).toBeChecked();
+
+    // Anonymous information modal is expected
+    // after selecting "Remain anonymous".
+    await this.handleAnonymousWarningModal();
   }
 
-  async selectIdentified() {
-    await this.page
-      .getByRole('radio', {
+
+  async selectIdentified(): Promise<void> {
+
+    const identifiedRadio =
+      this.page.getByRole('radio', {
         name: 'Disclose my identity'
-      })
-      .check();
+      });
+
+    await identifiedRadio.check();
+
+    await expect(
+      identifiedRadio
+    ).toBeChecked();
 
     await this.verifyIdentifiedFieldsVisible();
   }
+
+
+  // ==========================================================
+  // ANONYMOUS WARNING MODAL
+  // ==========================================================
+
+  private async handleAnonymousWarningModal():
+    Promise<void> {
+
+    const modalHeading =
+      this.page.getByRole('heading', {
+        name: 'Before You Continue Anonymously',
+        exact: true
+      });
+
+    await expect(
+      modalHeading
+    ).toBeVisible();
+
+    const closeButton =
+      this.page.getByRole('button', {
+        name: 'Close',
+        exact: true
+      });
+
+    await expect(
+      closeButton
+    ).toBeVisible();
+
+    await expect(
+      closeButton
+    ).toBeEnabled();
+
+    await closeButton.click();
+
+    await expect(
+      modalHeading
+    ).toBeHidden();
+  }
+
 
   // ==========================================================
   // ANONYMOUS REPORTER
   // ==========================================================
 
-  async selectReporterCategory(category: string) {
+  async selectReporterCategory(
+    category: string
+  ): Promise<void> {
+
     const reporterCategory =
       this.page.getByRole('combobox', {
         name: 'Reporter Category'
@@ -84,13 +141,22 @@ export class ReporterInfoStep {
     await reporterCategory.selectOption({
       label: category
     });
+
+    await expect(
+      reporterCategory
+    ).toHaveValue(
+      await reporterCategory.inputValue()
+    );
   }
+
 
   // ==========================================================
   // IDENTIFIED REPORTER
   // ==========================================================
 
-  async verifyIdentifiedFieldsVisible() {
+  async verifyIdentifiedFieldsVisible():
+    Promise<void> {
+
     const fields = [
       'First Name',
       'Last Name',
@@ -102,85 +168,88 @@ export class ReporterInfoStep {
     ];
 
     for (const field of fields) {
+
       await expect(
         this.page.getByRole('textbox', {
-          name: new RegExp(`^${field}\\s*\\*?$`, 'i')
+          name: new RegExp(
+            `^${field}\\s*\\*?$`,
+            'i'
+          )
         })
       ).toBeVisible();
     }
   }
 
+
   async fillIdentifiedReporter(
     data: ReporterInfoData
-  ) {
-    if (data.firstName) {
-      await this.page
-        .getByRole('textbox', {
-          name: /First Name/i
-        })
-        .fill(data.firstName);
-    }
+  ): Promise<void> {
 
-    if (data.lastName) {
-      await this.page
-        .getByRole('textbox', {
-          name: /Last Name/i
-        })
-        .fill(data.lastName);
-    }
+    this.validateIdentifiedReporter(
+      data
+    );
 
-    if (data.company) {
-      await this.page
-        .getByRole('textbox', {
-          name: /Company/i
-        })
-        .fill(data.company);
-    }
+    await this.page
+      .getByRole('textbox', {
+        name: /First Name/i
+      })
+      .fill(data.firstName!);
 
-    if (data.department) {
-      await this.page
-        .getByRole('textbox', {
-          name: /Department/i
-        })
-        .fill(data.department);
-    }
+    await this.page
+      .getByRole('textbox', {
+        name: /Last Name/i
+      })
+      .fill(data.lastName!);
 
-    if (data.position) {
-      await this.page
-        .getByRole('textbox', {
-          name: /Position/i
-        })
-        .fill(data.position);
-    }
+    await this.page
+      .getByRole('textbox', {
+        name: /Company/i
+      })
+      .fill(data.company!);
 
-    if (data.mobile) {
-      await this.page
-        .getByRole('textbox', {
-          name: /Mobile/i
-        })
-        .fill(data.mobile);
-    }
+    await this.page
+      .getByRole('textbox', {
+        name: /Department/i
+      })
+      .fill(data.department!);
 
-    if (data.email) {
-      await this.page
-        .getByRole('textbox', {
-          name: /Email/i
-        })
-        .fill(data.email);
-    }
+    await this.page
+      .getByRole('textbox', {
+        name: /Position/i
+      })
+      .fill(data.position!);
+
+    await this.page
+      .getByRole('textbox', {
+        name: /Mobile/i
+      })
+      .fill(data.mobile!);
+
+    await this.page
+      .getByRole('textbox', {
+        name: /Email/i
+      })
+      .fill(data.email!);
   }
+
 
   // ==========================================================
   // COMMON FILL
   // ==========================================================
 
-  async fill(data: ReporterInfoData) {
-    if (data.identityType === 'anonymous') {
+  async fill(
+    data: ReporterInfoData
+  ): Promise<void> {
+
+    if (
+      data.identityType === 'anonymous'
+    ) {
+
       await this.selectAnonymous();
 
       if (!data.reporterCategory) {
         throw new Error(
-          'reporterCategory is required for anonymous reporter'
+          'reporterCategory is required for anonymous reporter.'
         );
       }
 
@@ -193,17 +262,55 @@ export class ReporterInfoStep {
 
     await this.selectIdentified();
 
-    await this.fillIdentifiedReporter(data);
+    await this.fillIdentifiedReporter(
+      data
+    );
   }
+
+
+  // ==========================================================
+  // VALIDATION
+  // ==========================================================
+
+  private validateIdentifiedReporter(
+    data: ReporterInfoData
+  ): void {
+
+    const requiredFields: Array<
+      keyof ReporterInfoData
+    > = [
+        'firstName',
+        'lastName',
+        'company',
+        'department',
+        'position',
+        'mobile',
+        'email'
+      ];
+
+    const missingFields =
+      requiredFields.filter(
+        field => !data[field]
+      );
+
+    if (missingFields.length > 0) {
+      throw new Error(
+        `Missing identified reporter data: ${missingFields.join(', ')}`
+      );
+    }
+  }
+
 
   // ==========================================================
   // NAVIGATION
   // ==========================================================
 
-  async next() {
+  async next(): Promise<void> {
+
     const nextButton =
       this.page.getByRole('button', {
-        name: 'Next'
+        name: 'Next',
+        exact: true
       });
 
     await expect(
@@ -213,11 +320,19 @@ export class ReporterInfoStep {
     await nextButton.click();
   }
 
-  async back() {
-    await this.page
-      .getByRole('button', {
-        name: 'Back'
-      })
-      .click();
+
+  async back(): Promise<void> {
+
+    const backButton =
+      this.page.getByRole('button', {
+        name: 'Back',
+        exact: true
+      });
+
+    await expect(
+      backButton
+    ).toBeVisible();
+
+    await backButton.click();
   }
 }

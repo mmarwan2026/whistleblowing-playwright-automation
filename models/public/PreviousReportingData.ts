@@ -2,8 +2,8 @@ export interface PreviousReportingData {
   previouslyReported: 'Yes' | 'No';
 
   hasSystemReference?: 'Yes' | 'No' | "I don't remember";
-
   referenceNumber?: string;
+
   relevantInfo?: string;
   outcomeIfKnown?: string;
 

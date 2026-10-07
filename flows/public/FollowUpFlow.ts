@@ -32,7 +32,6 @@ export class FollowUpFlow {
   constructor(
     page: Page
   ) {
-
     this.accessPage =
       new FollowUpAccessPage(page);
 
@@ -49,64 +48,71 @@ export class FollowUpFlow {
 
   async accessCase(
     credentials: FollowUpCredentials
-  ) {
+  ): Promise<void> {
 
-    // --------------------------------------------------------
-    // 1. Open Follow-up page
-    // --------------------------------------------------------
+    // ========================================================
+    // STEP 1 - OPEN FOLLOW-UP
+    // ========================================================
 
     await this.accessPage.open();
 
-    // --------------------------------------------------------
-    // 2. Enter generated Reference Number
-    // --------------------------------------------------------
+    await this.accessPage
+      .verifyLoaded();
 
-    await this.accessPage.fillReferenceNumber(
-      credentials.referenceNumber
-    );
+    // ========================================================
+    // STEP 2 - ENTER REFERENCE NUMBER
+    // ========================================================
 
-    // --------------------------------------------------------
-    // 3. Enter generated Access Key / PIN
-    // --------------------------------------------------------
+    await this.accessPage
+      .fillReferenceNumber(
+        credentials.referenceNumber
+      );
 
-    await this.accessPage.fillAccessKey(
-      credentials.pin
-    );
-
-    // --------------------------------------------------------
-    // 4. Verify exactly what Playwright entered
+    // ========================================================
+    // STEP 3 - ENTER ACCESS KEY / PIN
     //
-    // Important:
     // Never log the PIN / Access Key.
-    // --------------------------------------------------------
+    // ========================================================
 
-    await this.accessPage.verifyCredentialsEntered(
-      credentials
-    );
+    await this.accessPage
+      .fillAccessKey(
+        credentials.pin
+      );
 
-    // --------------------------------------------------------
-    // 5. Submit Follow-up credentials
-    // --------------------------------------------------------
+    // ========================================================
+    // STEP 4 - VERIFY ENTERED CREDENTIALS
+    // ========================================================
 
-    await this.accessPage.clickAccessMyCase();
+    await this.accessPage
+      .verifyCredentialsEntered(
+        credentials
+      );
 
-    // --------------------------------------------------------
-    // 6. Verify successful case access
-    // --------------------------------------------------------
+    // ========================================================
+    // STEP 5 - ACCESS CASE
+    // ========================================================
 
-    await this.casePage.expectLoaded();
+    await this.accessPage
+      .clickAccessMyCase();
 
-    // --------------------------------------------------------
-    // 7. CRITICAL LIFECYCLE ASSERTION
+    // ========================================================
+    // STEP 6 - VERIFY CASE PAGE
+    // ========================================================
+
+    await this.casePage
+      .expectLoaded();
+
+    // ========================================================
+    // STEP 7 - VERIFY SAME SUBMITTED CASE
     //
-    // The case displayed after Follow-up MUST be the same case
-    // created during anonymous submission.
-    //
-    // Do not remove this assertion.
-    // --------------------------------------------------------
+    // Critical lifecycle assertion:
+    // Follow-up must open the exact report created during
+    // anonymous submission.
+    // ========================================================
 
-    await this.casePage.expectReferenceNumber(
-      credentials.referenceNumber
-    );
+    await this.casePage
+      .expectReferenceNumber(
+        credentials.referenceNumber
+      );
   }
 }

@@ -3,10 +3,14 @@ export interface Witness {
   lastName?: string;
   position?: string;
   department?: string;
+
+  // Current Witness UI includes Company.
+  company?: string;
+
   notes?: string;
 }
 
 export interface WitnessData {
-  hasWitnesses: 'Yes' | 'No' | "I don't know";
+  hasWitnesses: 'Yes' | 'No';
   witnesses?: Witness[];
 }

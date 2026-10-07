@@ -5,29 +5,41 @@ import { ReportingNoticePage } from '../../../pages/public/ReportingNoticePage';
 
 // ============================================================
 // COMMON NAVIGATION
-// Submit Report -> Previous Reporting
+//
+// CURRENT CONFIRMED WORKFLOW:
+//
+// Reporter Info
+// -> Classification
+// -> Allegation
+// -> Person(s) Involved
+// -> Entities Involved
+// -> Witnesses
+// -> Previous Reporting
+// -> Evidence
+// -> Declaration
 // ============================================================
 
 async function navigateToPreviousReporting(
   submit: SubmitReportPage,
   notice: ReportingNoticePage
-) {
-  // =========================================================
+): Promise<void> {
+
+  // ==========================================================
   // OPEN SUBMIT REPORT
-  // =========================================================
+  // ==========================================================
 
   await submit.open();
 
-  // =========================================================
+  // ==========================================================
   // REPORTING & CONFIDENTIALITY NOTICE
-  // =========================================================
+  // ==========================================================
 
   await notice.verifyLoaded();
   await notice.next();
 
-  // =========================================================
+  // ==========================================================
   // STEP 1 - REPORTER INFO
-  // =========================================================
+  // ==========================================================
 
   await submit.reporterInfo.verifyLoaded();
 
@@ -38,9 +50,9 @@ async function navigateToPreviousReporting(
 
   await submit.reporterInfo.next();
 
-  // =========================================================
+  // ==========================================================
   // STEP 2 - CLASSIFICATION
-  // =========================================================
+  // ==========================================================
 
   await submit.classification.verifyLoaded();
 
@@ -48,20 +60,13 @@ async function navigateToPreviousReporting(
     .selectInternalAuditAnswer('No');
 
   await submit.classification
-    .selectCategory(
-      'Conflict of Interest'
-    );
-
-  await submit.classification
-    .selectSubcategory(
-      'Nepotism/Cronyism'
-    );
+    .selectCategory('Nepotism/Cronyism');
 
   await submit.classification.next();
 
-  // =========================================================
+  // ==========================================================
   // STEP 3 - ALLEGATION
-  // =========================================================
+  // ==========================================================
 
   await submit.allegation.verifyLoaded();
 
@@ -85,9 +90,9 @@ async function navigateToPreviousReporting(
 
   await submit.allegation.next();
 
-  // =========================================================
+  // ==========================================================
   // STEP 4 - PERSON(S) INVOLVED
-  // =========================================================
+  // ==========================================================
 
   await submit.personsInvolved.verifyLoaded();
 
@@ -96,9 +101,20 @@ async function navigateToPreviousReporting(
 
   await submit.personsInvolved.next();
 
-  // =========================================================
-  // STEP 5 - WITNESSES
-  // =========================================================
+  // ==========================================================
+  // STEP 5 - ENTITIES INVOLVED
+  // ==========================================================
+
+  await submit.entitiesInvolved.verifyLoaded();
+
+  await submit.entitiesInvolved
+    .selectCanIdentify('No');
+
+  await submit.entitiesInvolved.next();
+
+  // ==========================================================
+  // STEP 6 - WITNESSES
+  // ==========================================================
 
   await submit.witnesses.verifyLoaded();
 
@@ -107,235 +123,652 @@ async function navigateToPreviousReporting(
 
   await submit.witnesses.next();
 
-  // =========================================================
-  // STEP 6 - EVIDENCE
-  // =========================================================
-
-  await submit.evidence.verifyLoaded();
-
-  /*
-   * Previous Reporting tests are not Evidence tests.
-   * Use Evidence = No to keep these tests isolated from
-   * file-upload behavior.
-   */
-
-  await submit.evidence
-    .selectEvidenceAnswer('No');
-
-  await submit.evidence.next();
-
-  // =========================================================
+  // ==========================================================
   // STEP 7 - PREVIOUS REPORTING
-  // =========================================================
+  // ==========================================================
 
-  await submit.previousReporting
-    .verifyLoaded();
+  await submit.previousReporting.verifyLoaded();
+}
+
+// ============================================================
+// COMMON ASSERTIONS
+// ============================================================
+
+async function verifyPreviousReportingStep(
+  submit: SubmitReportPage
+): Promise<void> {
+  await submit.previousReporting.verifyLoaded();
+}
+
+async function verifyEvidenceStep(
+  submit: SubmitReportPage
+): Promise<void> {
+  await submit.evidence.verifyLoaded();
 }
 
 // ============================================================
 // PREVIOUS REPORTING TEST SUITE
 // ============================================================
 
-test.describe(
-  'Previous Reporting',
-  () => {
+// ========================================================
+// TC-042
+// Previously Reported = No
+// Expected:
+// User can continue directly to Declaration
+// ========================================================
+
+test(
+  'TC-063 | User can select No for previous reporting and continue to Evidence @smoke @public @intake',
+  async ({ page }) => {
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
 
     // ========================================================
-    // TC-042
+    // Navigate to Previous Reporting
+    // ========================================================
+
+    await navigateToPreviousReporting(
+      submit,
+      notice
+    );
+
+    // ========================================================
+    // Verify Previous Reporting
+    // ========================================================
+
+    await submit.previousReporting
+      .verifyLoaded();
+
+    // ========================================================
     // Previously Reported = No
-    // Expected:
-    // User can continue directly to Declaration
     // ========================================================
 
-    test(
-      'TC-042 | User can select No for previous reporting and continue to Declaration @smoke @public @intake',
-      async ({ page }) => {
+    await submit.previousReporting
+      .selectPreviouslyReported('No');
 
-        const submit =
-          new SubmitReportPage(page);
+    // ========================================================
+    // Continue
+    // ========================================================
 
-        const notice =
-          new ReportingNoticePage(page);
+    await submit.previousReporting.next();
 
-        // ----------------------------------------------------
-        // Navigate to Previous Reporting
-        // ----------------------------------------------------
+    // ========================================================
+    // EXPECTED NEXT STEP = EVIDENCE
+    // ========================================================
 
-        await navigateToPreviousReporting(
-          submit,
-          notice
-        );
+    await submit.evidence.verifyLoaded();
+  }
+);
 
-        // ----------------------------------------------------
-        // Verify Step 7
-        // ----------------------------------------------------
+// ========================================================
+// TC-043
+// Previously Reported = Yes
+// System Reference = Yes
+// Exact Date = Yes
+//
+// Expected:
+// User can provide previous report details and continue
+// to Declaration.
+// ========================================================
 
-        await submit.previousReporting
-          .verifyLoaded();
+test(
+  'TC-064 | User can provide previous report system reference and exact reporting date @regression @conditional @public @intake',
+  async ({ page }) => {
+    const submit =
+      new SubmitReportPage(page);
 
-        // ----------------------------------------------------
-        // Previously Reported = No
-        // ----------------------------------------------------
+    const notice =
+      new ReportingNoticePage(page);
 
-        await submit.previousReporting
-          .selectPreviouslyReported('No');
+    // ========================================================
+    // Navigate to Previous Reporting
+    // ========================================================
 
-        // ----------------------------------------------------
-        // Continue
-        // ----------------------------------------------------
-
-        await submit.previousReporting.next();
-
-        // ----------------------------------------------------
-        // Verify Declaration
-        // ----------------------------------------------------
-
-        await expect(
-          page.getByRole(
-            'heading',
-            {
-              name: 'Declaration',
-              level: 2
-            }
-          )
-        ).toBeVisible();
-      }
+    await navigateToPreviousReporting(
+      submit,
+      notice
     );
 
+    await submit.previousReporting
+      .verifyLoaded();
+
     // ========================================================
-    // TC-043
     // Previously Reported = Yes
-    // System Reference = Yes
-    // Exact Date = Yes
-    //
-    // Expected:
-    // User can provide previous report details and continue
-    // to Declaration.
     // ========================================================
 
-    test(
-      'TC-043 | User can provide previous report system reference and exact reporting date @public @intake',
-      async ({ page }) => {
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
 
-        const submit =
-          new SubmitReportPage(page);
+    // ========================================================
+    // Verify System Reference question
+    //
+    // Confirmed current UI:
+    // Yes / No / Forgot It
+    // ========================================================
 
-        const notice =
-          new ReportingNoticePage(page);
+    await submit.previousReporting
+      .verifySystemReferenceQuestionVisible();
 
-        // ----------------------------------------------------
-        // Navigate to Previous Reporting
-        // ----------------------------------------------------
+    // ========================================================
+    // System Reference = Yes
+    // ========================================================
 
-        await navigateToPreviousReporting(
-          submit,
-          notice
-        );
+    await submit.previousReporting
+      .selectSystemReferenceAnswer('Yes');
 
-        // ----------------------------------------------------
-        // Previously Reported = Yes
-        // ----------------------------------------------------
+    // ========================================================
+    // Reference Number
+    // ========================================================
 
-        await submit.previousReporting
-          .selectPreviouslyReported('Yes');
+    await submit.previousReporting
+      .verifyReferenceNumberVisible();
 
-        // ----------------------------------------------------
-        // Verify System Reference question appears
-        // ----------------------------------------------------
+    await submit.previousReporting
+      .fillReferenceNumber(
+        'RSG-2026-000001'
+      );
 
-        await submit.previousReporting
-          .verifySystemReferenceQuestionVisible();
+    // ========================================================
+    // Relevant Info
+    // ========================================================
 
-        // ----------------------------------------------------
-        // System Reference Number = Yes
-        // ----------------------------------------------------
+    await submit.previousReporting
+      .fillRelevantInfo(
+        'The concern was previously reported through the internal reporting system.'
+      );
 
-        await submit.previousReporting
-          .selectSystemReferenceAnswer('Yes');
+    // ========================================================
+    // Outcome
+    // ========================================================
 
-        // ----------------------------------------------------
-        // Verify Reference Number field
-        // ----------------------------------------------------
+    await submit.previousReporting
+      .fillOutcome(
+        'The previous report was reviewed.'
+      );
 
-        await submit.previousReporting
-          .verifyReferenceNumberVisible();
+    // ========================================================
+    // Exact Reporting Date = Yes
+    // ========================================================
 
-        // ----------------------------------------------------
-        // Reference Number
-        // ----------------------------------------------------
+    await submit.previousReporting
+      .selectExactDate('Yes');
 
-        await submit.previousReporting
-          .fillReferenceNumber(
-            'RSG-2026-000001'
-          );
+    // ========================================================
+    // Reporting Date
+    // ========================================================
 
-        // ----------------------------------------------------
-        // Relevant Info
-        // ----------------------------------------------------
+    await submit.previousReporting
+      .verifyReportingDateVisible();
 
-        await submit.previousReporting
-          .fillRelevantInfo(
-            'The concern was previously reported through the internal reporting system.'
-          );
+    await submit.previousReporting
+      .fillReportingDate(
+        '2026-08-15'
+      );
 
-        // ----------------------------------------------------
-        // Outcome
-        // ----------------------------------------------------
+    // ========================================================
+    // Continue
+    // ========================================================
 
-        await submit.previousReporting
-          .fillOutcome(
-            'The previous report was reviewed.'
-          );
+    await submit.previousReporting.next();
 
-        // ----------------------------------------------------
-        // Exact Previous Reporting Date = Yes
-        // ----------------------------------------------------
+    // ========================================================
+    // Expected Next Step = Evidence
+    // ========================================================
 
-        await submit.previousReporting
-          .selectExactDate('Yes');
+    await submit.evidence.verifyLoaded();
+  }
+);
 
-        // ----------------------------------------------------
-        // Verify Date field
-        // ----------------------------------------------------
+test(
+  'TC-065 | User can provide previous reporting recipient details and approximate reporting date @regression @conditional @public @intake',
+  async ({ page }) => {
+    const submit =
+      new SubmitReportPage(page);
 
-        await submit.previousReporting
-          .verifyReportingDateVisible();
+    const notice =
+      new ReportingNoticePage(page);
 
-        // ----------------------------------------------------
-        // Fill native date
-        // YYYY-MM-DD
-        // ----------------------------------------------------
+    // ========================================================
+    // Navigate to Previous Reporting
+    // ========================================================
 
-        await submit.previousReporting
-          .fillReportingDate(
-            '2026-09-01'
-          );
-
-        // ----------------------------------------------------
-        // Continue
-        // ----------------------------------------------------
-
-        await submit.previousReporting.next();
-
-        // ----------------------------------------------------
-        // Verify Step 8 - Declaration
-        // ----------------------------------------------------
-
-        await expect(
-          page.getByRole(
-            'heading',
-            {
-              name: 'Declaration',
-              level: 2
-            }
-          )
-        ).toBeVisible();
-      }
+    await navigateToPreviousReporting(
+      submit,
+      notice
     );
+
+    await submit.previousReporting
+      .verifyLoaded();
+
+    // ========================================================
+    // Previously Reported = Yes
+    // ========================================================
+
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
+
+    await submit.previousReporting
+      .verifySystemReferenceQuestionVisible();
+
+    // ========================================================
+    // System Reference = No
+    // ========================================================
+
+    await submit.previousReporting
+      .selectSystemReferenceAnswer('No');
+
+    // ========================================================
+    // To Whom?
+    // ========================================================
+
+    await submit.previousReporting
+      .verifyToWhomVisible();
+
+    // ========================================================
+    // Required recipient details
+    // ========================================================
+
+    await submit.previousReporting
+      .fillFirstName('Ahmed');
+
+    await submit.previousReporting
+      .fillLastName('Ali');
+
+    // ========================================================
+    // Position / Department
+    //
+    // No required marker is displayed in current UI.
+    // Fill it in this positive-path test.
+    // ========================================================
+
+    await submit.previousReporting
+      .fillPositionDepartment(
+        'Compliance Department'
+      );
+
+    // ========================================================
+    // Outcome, If Known
+    //
+    // Confirmed visible for System Reference = No.
+    // ========================================================
+
+    await submit.previousReporting
+      .fillOutcome(
+        'No final outcome was communicated.'
+      );
+
+    // ========================================================
+    // Exact Date = No
+    // ========================================================
+
+    await submit.previousReporting
+      .selectExactDate('No');
+
+    // ========================================================
+    // Date Description
+    // ========================================================
+
+    await submit.previousReporting
+      .verifyDateDescriptionVisible();
+
+    await submit.previousReporting
+      .fillDateDescription(
+        'Approximately August 2026'
+      );
+
+    // ========================================================
+    // Continue
+    // ========================================================
+
+    await submit.previousReporting.next();
+
+    // ========================================================
+    // Expected Next Step = Evidence
+    // ========================================================
+
+    await submit.evidence.verifyLoaded();
+  }
+);;
+
+test(
+  'TC-066 | User can select Forgot It when system reference number is not remembered @regression @conditional @public @intake',
+  async ({ page }) => {
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    // ========================================================
+    // Navigate to Previous Reporting
+    // ========================================================
+
+    await navigateToPreviousReporting(
+      submit,
+      notice
+    );
+
+    await submit.previousReporting
+      .verifyLoaded();
+
+    // ========================================================
+    // Previously Reported = Yes
+    // ========================================================
+
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
+
+    await submit.previousReporting
+      .verifySystemReferenceQuestionVisible();
+
+    // ========================================================
+    // System Reference = Forgot It
+    //
+    // Existing model value:
+    // "I don't remember"
+    //
+    // Current UI value:
+    // "Forgot It"
+    //
+    // POM performs the mapping.
+    // ========================================================
+
+    await submit.previousReporting
+      .selectSystemReferenceAnswer(
+        "I don't remember"
+      );
+
+    // ========================================================
+    // Verify Forgot It is actually selected in current UI
+    // ========================================================
+
+    const systemReferenceGroup =
+      page.getByRole(
+        'radiogroup',
+        {
+          name:
+            'Do You Have a System Reference Number?'
+        }
+      );
+
+    await expect(
+      systemReferenceGroup.getByRole(
+        'radio',
+        {
+          name: 'Forgot It',
+          exact: true
+        }
+      )
+    ).toBeChecked();
+
+    // ========================================================
+    // Outcome, If Known
+    //
+    // Fill only if this field is part of the Forgot It branch.
+    // We do NOT assume that yet.
+    // ========================================================
+
+    // ========================================================
+    // Exact Date
+    // ========================================================
+
+    await submit.previousReporting
+      .selectExactDate('No');
+
+    // ========================================================
+    // Date Description
+    // ========================================================
+
+    await submit.previousReporting
+      .verifyDateDescriptionVisible();
+
+    await submit.previousReporting
+      .fillDateDescription(
+        'Approximately August 2026'
+      );
+
+    // ========================================================
+    // Continue
+    // ========================================================
+
+    await submit.previousReporting.next();
+
+    // ========================================================
+    // Expected Next Step = Evidence
+    // ========================================================
+
+    await submit.evidence.verifyLoaded();
+  }
+);
+
+test(
+  'TC-067 | Reference Number is mandatory when System Reference is Yes @regression @validation @public @intake',
+  async ({ page }) => {
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(
+      submit,
+      notice
+    );
+
+    // ========================================================
+    // Previously Reported = Yes
+    // ========================================================
+
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
+
+    await submit.previousReporting
+      .verifySystemReferenceQuestionVisible();
+
+    // ========================================================
+    // System Reference = Yes
+    // ========================================================
+
+    await submit.previousReporting
+      .selectSystemReferenceAnswer('Yes');
+
+    // Reference Number must now be displayed.
+    await submit.previousReporting
+      .verifyReferenceNumberVisible();
+
+    // ========================================================
+    // Keep Reference Number EMPTY
+    // ========================================================
+
+    // Do not call fillReferenceNumber().
+
+    // ========================================================
+    // Attempt to continue
+    // ========================================================
+
+    await submit.previousReporting.next();
+
+    // ========================================================
+    // Expected:
+    // navigation must be blocked
+    // ========================================================
+
+    await submit.previousReporting
+      .verifyLoaded();
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Evidence',
+        level: 2
+      })
+    ).not.toBeVisible();
+
+    // Reference Number should remain visible.
+    await submit.previousReporting
+      .verifyReferenceNumberVisible();
+  }
+);
+
+test(
+  'TC-068 | First Name is mandatory when System Reference is No @regression @validation @public @intake',
+  async ({ page }) => {
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(
+      submit,
+      notice
+    );
+
+    // ========================================================
+    // Previously Reported = Yes
+    // ========================================================
+
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
+
+    // ========================================================
+    // System Reference = No
+    // ========================================================
+
+    await submit.previousReporting
+      .selectSystemReferenceAnswer('No');
+
+    await submit.previousReporting
+      .verifyToWhomVisible();
+
+    // ========================================================
+    // First Name = EMPTY
+    //
+    // Last Name is supplied so that this test isolates
+    // First Name validation only.
+    // ========================================================
+
+    await submit.previousReporting
+      .fillLastName('Ali');
+
+    // ========================================================
+    // Exact Date = No
+    // ========================================================
+
+    await submit.previousReporting
+      .selectExactDate('No');
+
+    // ========================================================
+    // Attempt to continue
+    // ========================================================
+
+    await submit.previousReporting.next();
+
+    // ========================================================
+    // Expected:
+    // navigation blocked because First Name is empty
+    // ========================================================
+
+    await submit.previousReporting
+      .verifyLoaded();
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Evidence',
+        level: 2
+      })
+    ).not.toBeVisible();
+
+    // ========================================================
+    // To Whom section must still be displayed
+    // ========================================================
+
+    await submit.previousReporting
+      .verifyToWhomVisible();
   }
 );
 test(
-  'TC-044 | User can provide previous reporting recipient details when no system reference is available @public @intake',
+  'TC-069 | Last Name is mandatory when System Reference is No @regression @validation @public @intake',
+  async ({ page }) => {
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(
+      submit,
+      notice
+    );
+
+    // ========================================================
+    // Previously Reported = Yes
+    // ========================================================
+
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
+
+    // ========================================================
+    // System Reference = No
+    // ========================================================
+
+    await submit.previousReporting
+      .selectSystemReferenceAnswer('No');
+
+    await submit.previousReporting
+      .verifyToWhomVisible();
+
+    // ========================================================
+    // First Name = VALID
+    // Last Name  = EMPTY
+    // ========================================================
+
+    await submit.previousReporting
+      .fillFirstName('Ahmed');
+
+    // Do NOT fill Last Name.
+
+    // ========================================================
+    // Exact Date = No
+    // ========================================================
+
+    await submit.previousReporting
+      .selectExactDate('No');
+
+    // ========================================================
+    // Attempt to continue
+    // ========================================================
+
+    await submit.previousReporting.next();
+
+    // ========================================================
+    // Expected:
+    // navigation must remain on Previous Reporting
+    // ========================================================
+
+    await submit.previousReporting
+      .verifyLoaded();
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Evidence',
+        level: 2
+      })
+    ).not.toBeVisible();
+
+    // ========================================================
+    // To Whom remains displayed
+    // ========================================================
+
+    await submit.previousReporting
+      .verifyToWhomVisible();
+  }
+);
+
+test(
+  'TC-070 | Position / Department is optional when System Reference is No @regression @validation @public @intake',
   async ({ page }) => {
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
@@ -345,15 +778,54 @@ test(
       notice
     );
 
-    // Previously Reported = Yes
     await submit.previousReporting
       .selectPreviouslyReported('Yes');
 
-    // System Reference = No
     await submit.previousReporting
       .selectSystemReferenceAnswer('No');
 
-    // Verify To Whom section
+    await submit.previousReporting
+      .verifyToWhomVisible();
+
+    // Required fields
+    await submit.previousReporting
+      .fillFirstName('Ahmed');
+
+    await submit.previousReporting
+      .fillLastName('Ali');
+
+    // Position / Department intentionally left empty.
+
+    await submit.previousReporting
+      .selectExactDate('No');
+
+    // Continue without Position / Department.
+    await submit.previousReporting.next();
+
+    // Expected: field is optional, therefore Evidence is reached.
+    await submit.evidence.verifyLoaded();
+  }
+);
+
+test(
+  'TC-071 | Exact Date answer is mandatory when System Reference is No @regression @validation @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(
+      submit,
+      notice
+    );
+
+    // Previously Reported
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
+
+    // System Reference
+    await submit.previousReporting
+      .selectSystemReferenceAnswer('No');
+
     await submit.previousReporting
       .verifyToWhomVisible();
 
@@ -362,838 +834,562 @@ test(
       .fillFirstName('Ahmed');
 
     await submit.previousReporting
-      .fillLastName('Mohamed');
+      .fillLastName('Ali');
 
-    // Optional
-    await submit.previousReporting
-      .fillPositionDepartment(
-        'Internal Audit'
-      );
+    // Position / Department intentionally empty.
+    // Already confirmed optional.
 
-    // Optional outcome
-    await submit.previousReporting
-      .fillOutcome(
-        'The concern was previously reviewed.'
-      );
-
-    // Previous reporting date is not exact
-    await submit.previousReporting
-      .selectExactDate('No');
-
-    await submit.previousReporting
-      .verifyDateDescriptionVisible();
-
-    await submit.previousReporting
-      .fillDateDescription(
-        'The concern was reported approximately in August 2026.'
-      );
-
-    // Continue to Declaration
-    await submit.previousReporting.next();
-
-    await expect(
-      page.getByRole('heading', {
-        name: 'Declaration',
-        level: 2
-      })
-    ).toBeVisible();
-  }
-);
-test(
-  "TC-045 | User can continue when previous report system reference is not remembered @public @intake",
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToPreviousReporting(
-      submit,
-      notice
-    );
-
-    // Previously Reported = Yes
-    await submit.previousReporting
-      .selectPreviouslyReported('Yes');
-
-    // System Reference = I don't remember
-    await submit.previousReporting
-      .selectSystemReferenceAnswer(
-        "I don't remember"
-      );
-
-    // Relevant information
-    await submit.previousReporting
-      .fillRelevantInfo(
-        'The concern was previously reported, but the system reference number is not available.'
-      );
-
-    // Outcome
-    await submit.previousReporting
-      .fillOutcome(
-        'The previous report was reviewed.'
-      );
-
-    // Exact Date = No
-    await submit.previousReporting
-      .selectExactDate('No');
-
-    await submit.previousReporting
-      .verifyDateDescriptionVisible();
-
-    await submit.previousReporting
-      .fillDateDescription(
-        'The concern was reported approximately in August 2026.'
-      );
-
-    // Continue
-    await submit.previousReporting.next();
-
-    // Step 8
-    await expect(
-      page.getByRole('heading', {
-        name: 'Declaration',
-        level: 2
-      })
-    ).toBeVisible();
-  }
-);
-test(
-  'TC-046 | Exact Date Yes displays Date of Reporting and accepts a valid date @public @intake',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToPreviousReporting(
-      submit,
-      notice
-    );
-
-    await submit.previousReporting
-      .selectPreviouslyReported('Yes');
-
-    await submit.previousReporting
-      .selectSystemReferenceAnswer(
-        "I don't remember"
-      );
-
-    // Exact Date = Yes
-    await submit.previousReporting
-      .selectExactDate('Yes');
-
-    // Date of Reporting must appear
-    await submit.previousReporting
-      .verifyReportingDateVisible();
-
-    await submit.previousReporting
-      .fillReportingDate('2026-08-15');
-
-    // Continue
-    await submit.previousReporting.next();
-
-    // Verify Declaration
-    await expect(
-      page.getByRole('heading', {
-        name: 'Declaration',
-        level: 2
-      })
-    ).toBeVisible();
-  }
-);
-test(
-  'TC-047 | Exact Date No displays Date Description and accepts approximate reporting date @public @intake',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToPreviousReporting(
-      submit,
-      notice
-    );
-
-    // Previously Reported = Yes
-    await submit.previousReporting
-      .selectPreviouslyReported('Yes');
-
-    // Reference number is not remembered
-    await submit.previousReporting
-      .selectSystemReferenceAnswer(
-        "I don't remember"
-      );
-
-    // Exact Date = No
-    await submit.previousReporting
-      .selectExactDate('No');
-
-    // Date Description should appear
-    await submit.previousReporting
-      .verifyDateDescriptionVisible();
-
-    // Enter approximate date information
-    await submit.previousReporting
-      .fillDateDescription(
-        'The concern was reported approximately in August 2026.'
-      );
-
-    // Continue
-    await submit.previousReporting.next();
-
-    // Verify Step 8 - Declaration
-    await expect(
-      page.getByRole('heading', {
-        name: 'Declaration',
-        level: 2
-      })
-    ).toBeVisible();
-  }
-);
-test(
-  'TC-048 | System Reference Number is mandatory when System Reference is Yes @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToPreviousReporting(
-      submit,
-      notice
-    );
-
-    await submit.previousReporting
-      .selectPreviouslyReported('Yes');
-
-    await submit.previousReporting
-      .selectSystemReferenceAnswer('Yes');
-
-    await submit.previousReporting
-      .verifyReferenceNumberVisible();
-
-    // Leave Reference Number empty
-    await submit.previousReporting.next();
-
-    // User must remain on Previous Reporting
-    await expect(
-      page.getByRole('heading', {
-        name: 'Previous Reporting',
-        level: 2
-      })
-    ).toBeVisible();
-
-    // General validation summary
-    await expect(
-      page.getByText(
-        'Please complete all mandatory fields',
-        { exact: true }
-      )
-    ).toBeVisible();
-  }
-);
-test(
-  'TC-049 | First Name and Last Name are mandatory when System Reference is No @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToPreviousReporting(
-      submit,
-      notice
-    );
-
-    // Previously Reported = Yes
-    await submit.previousReporting
-      .selectPreviouslyReported('Yes');
-
-    // System Reference = No
-    await submit.previousReporting
-      .selectSystemReferenceAnswer('No');
-
-    // Verify To Whom fields are displayed
-    await submit.previousReporting
-      .verifyToWhomVisible();
-
-    // Intentionally leave:
-    // First Name = empty
-    // Last Name  = empty
+    // IMPORTANT:
+    // Do NOT select Exact Date Yes/No.
 
     await submit.previousReporting.next();
 
-    // User must remain on Previous Reporting
-    await expect(
-      page.getByRole('heading', {
-        name: 'Previous Reporting',
-        level: 2
-      })
-    ).toBeVisible();
-
-    // General mandatory validation
-    await expect(
-      page.getByText(
-        'Please complete all mandatory fields',
-        { exact: true }
-      )
-    ).toBeVisible();
-  }
-);
-test(
-  'TC-050 | Date of Reporting is mandatory when Exact Date is Yes @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToPreviousReporting(
-      submit,
-      notice
-    );
-
-    // Previously Reported = Yes
-    await submit.previousReporting
-      .selectPreviouslyReported('Yes');
-
-    // Avoid Reference Number mandatory validation
-    await submit.previousReporting
-      .selectSystemReferenceAnswer(
-        "I don't remember"
-      );
-
-    // Exact Date = Yes
-    await submit.previousReporting
-      .selectExactDate('Yes');
-
-    // Date of Reporting should appear
-    await submit.previousReporting
-      .verifyReportingDateVisible();
-
-    // Intentionally leave Date of Reporting empty
-    await submit.previousReporting.next();
-
-    // Must remain on Previous Reporting
-    await expect(
-      page.getByRole('heading', {
-        name: 'Previous Reporting',
-        level: 2
-      })
-    ).toBeVisible();
-
-    // General mandatory validation
-    await expect(
-      page.getByText(
-        'Please complete all mandatory fields',
-        { exact: true }
-      )
-    ).toBeVisible();
-  }
-);
-test(
-  'TC-051 | Changing System Reference from Yes to No hides previous reference fields and displays To Whom fields @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToPreviousReporting(
-      submit,
-      notice
-    );
-
-    // Previously Reported = Yes
-    await submit.previousReporting
-      .selectPreviouslyReported('Yes');
-
-    // ========================================================
-    // First path: System Reference = Yes
-    // ========================================================
-
-    await submit.previousReporting
-      .selectSystemReferenceAnswer('Yes');
-
-    await submit.previousReporting
-      .verifyReferenceNumberVisible();
-
-    await submit.previousReporting
-      .fillReferenceNumber(
-        'RSG-2026-000001'
-      );
-
-    await submit.previousReporting
-      .fillRelevantInfo(
-        'Previously reported information.'
-      );
-
-    // ========================================================
-    // Change path: Yes -> No
-    // ========================================================
-
-    await submit.previousReporting
-      .selectSystemReferenceAnswer('No');
-
-    // ========================================================
-    // Old Yes-path fields should disappear
-    // ========================================================
-
-    await expect(
-      page.getByRole('textbox', {
-        name:
-          /Previously Reported Incident Reference Number/i
-      })
-    ).toBeHidden();
-
-    await expect(
-      page.getByRole('textbox', {
-        name: 'Relevant Info',
-        exact: true
-      })
-    ).toBeHidden();
-
-    // ========================================================
-    // No-path fields should appear
-    // ========================================================
-
-    await submit.previousReporting
-      .verifyToWhomVisible();
-  }
-);
-test(
-  'TC-052 | Changing Exact Date from Yes to No hides Date of Reporting and displays Date Description @public @intake',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToPreviousReporting(
-      submit,
-      notice
-    );
-
-    // Previously Reported = Yes
-    await submit.previousReporting
-      .selectPreviouslyReported('Yes');
-
-    // Avoid reference-specific mandatory fields
-    await submit.previousReporting
-      .selectSystemReferenceAnswer(
-        "I don't remember"
-      );
-
-    // ========================================================
-    // Exact Date = Yes
-    // ========================================================
-
-    await submit.previousReporting
-      .selectExactDate('Yes');
-
-    await submit.previousReporting
-      .verifyReportingDateVisible();
-
-    await submit.previousReporting
-      .fillReportingDate('2026-08-15');
-
-    // ========================================================
-    // Change Exact Date: Yes -> No
-    // ========================================================
-
-    await submit.previousReporting
-      .selectExactDate('No');
-
-    // Date of Reporting should disappear
-    await expect(
-      page.getByLabel(/Date of Reporting/i)
-    ).toBeHidden();
-
-    // Date Description should appear
-    await submit.previousReporting
-      .verifyDateDescriptionVisible();
-
-    await submit.previousReporting
-      .fillDateDescription(
-        'The previous report was submitted approximately in August 2026.'
-      );
-  }
-);
-test(
-  'TC-053 | Previous Reporting data persists after Back navigation and returning to the step @public @intake',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToPreviousReporting(
-      submit,
-      notice
-    );
-
-    // ========================================================
-    // Enter Previous Reporting data
-    // ========================================================
-
-    await submit.previousReporting
-      .selectPreviouslyReported('Yes');
-
-    await submit.previousReporting
-      .selectSystemReferenceAnswer('Yes');
-
-    await submit.previousReporting
-      .fillReferenceNumber(
-        'RSG-2026-000001'
-      );
-
-    await submit.previousReporting
-      .fillRelevantInfo(
-        'Previous reporting persistence test.'
-      );
-
-    await submit.previousReporting
-      .fillOutcome(
-        'The previous report was reviewed.'
-      );
-
-    await submit.previousReporting
-      .selectExactDate('Yes');
-
-    await submit.previousReporting
-      .fillReportingDate(
-        '2026-08-15'
-      );
-
-    // ========================================================
-    // Back -> Evidence
-    // ========================================================
-
-    await submit.previousReporting.back();
-
-    await submit.evidence.verifyLoaded();
-
-    // ========================================================
-    // Evidence -> Previous Reporting
-    // ========================================================
-
-    await submit.evidence.next();
-
+    // Navigation must be blocked.
     await submit.previousReporting
       .verifyLoaded();
 
-    // ========================================================
-    // Verify selected answers persisted
-    // ========================================================
-
-    const previousReportingGroup =
-      page.getByRole('radiogroup', {
-        name:
-          'Have You Previously Reported This Concern?'
-      });
-
     await expect(
-      previousReportingGroup.getByRole(
-        'radio',
-        {
-          name: 'Yes',
-          exact: true
-        }
-      )
-    ).toBeChecked();
-
-    // System Reference group has no accessible name
-    // in the current application DOM.
-    const systemReferenceGroup =
-      page.getByRole('radiogroup').nth(1);
-
-    await expect(
-      systemReferenceGroup.getByRole(
-        'radio',
-        {
-          name: 'Yes',
-          exact: true
-        }
-      )
-    ).toBeChecked();
-
-    // ========================================================
-    // Verify text data persisted
-    // ========================================================
-
-    await expect(
-      page.getByRole('textbox', {
-        name:
-          /Previously Reported Incident Reference Number/i
+      page.getByRole('heading', {
+        name: 'Evidence',
+        level: 2
       })
-    ).toHaveValue(
-      'RSG-2026-000001'
-    );
-
-    await expect(
-      page.getByRole('textbox', {
-        name: 'Relevant Info',
-        exact: true
-      })
-    ).toHaveValue(
-      'Previous reporting persistence test.'
-    );
-
-    await expect(
-      page.getByRole('textbox', {
-        name: /Outcome, If Known/i
-      })
-    ).toHaveValue(
-      'The previous report was reviewed.'
-    );
-
-    // ========================================================
-    // Verify Exact Date persisted
-    // ========================================================
-
-    const exactDateGroup =
-      page.getByRole('radiogroup').last();
-
-    await expect(
-      exactDateGroup.getByRole(
-        'radio',
-        {
-          name: 'Yes',
-          exact: true
-        }
-      )
-    ).toBeChecked();
-
-    await expect(
-      page.getByLabel(/Date of Reporting/i)
-    ).toHaveValue(
-      '2026-08-15'
-    );
+    ).not.toBeVisible();
   }
 );
 // ============================================================
-// ADDITIONAL PREVIOUS REPORTING COVERAGE
-// TC-054 -> TC-067
+// TC-072 -> TC-087
+// REMAINING PREVIOUS REPORTING COVERAGE
 // ============================================================
 
 test(
-  'TC-054 | Previously Reported is mandatory @public @intake @validation',
+  'TC-072 | Date of Reporting is mandatory when Exact Date is Yes @regression @validation @public @intake',
   async ({ page }) => {
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
 
-    await submit.previousReporting.next();
-
-    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
-    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
-  }
-);
-
-test(
-  'TC-055 | System Reference answer is mandatory when Previously Reported is Yes @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
-
-    await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.verifySystemReferenceQuestionVisible();
-    await submit.previousReporting.next();
-
-    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
-    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
-  }
-);
-
-test(
-  'TC-056 | Exact Date answer is mandatory when Previously Reported is Yes @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
-
-    await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
-    await submit.previousReporting.next();
-
-    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
-    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
-  }
-);
-
-test(
-  'TC-057 | Date Description is mandatory when Exact Date is No @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
-
-    await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
-    await submit.previousReporting.selectExactDate('No');
-    await submit.previousReporting.verifyDateDescriptionVisible();
-    await submit.previousReporting.next();
-
-    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
-    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
-  }
-);
-
-test(
-  'TC-058 | First Name is individually mandatory when System Reference is No @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
     await navigateToPreviousReporting(submit, notice);
 
     await submit.previousReporting.selectPreviouslyReported('Yes');
     await submit.previousReporting.selectSystemReferenceAnswer('No');
-    await submit.previousReporting.fillLastName('Mohamed');
-    await submit.previousReporting.selectExactDate('No');
-    await submit.previousReporting.fillDateDescription('Approximately August 2026.');
-    await submit.previousReporting.next();
 
-    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
-    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
-  }
-);
-
-test(
-  'TC-059 | Last Name is individually mandatory when System Reference is No @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
-
-    await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.selectSystemReferenceAnswer('No');
     await submit.previousReporting.fillFirstName('Ahmed');
-    await submit.previousReporting.selectExactDate('No');
-    await submit.previousReporting.fillDateDescription('Approximately August 2026.');
-    await submit.previousReporting.next();
-
-    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
-    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
-  }
-);
-
-test(
-  'TC-060 | Mandatory recipient fields reject whitespace-only values @public @intake @validation',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
-
-    await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.selectSystemReferenceAnswer('No');
-    await submit.previousReporting.fillFirstName('   ');
-    await submit.previousReporting.fillLastName('   ');
-    await submit.previousReporting.selectExactDate('No');
-    await submit.previousReporting.fillDateDescription('Approximately August 2026.');
-    await submit.previousReporting.next();
-
-    await expect(page.getByRole('heading', { name: 'Previous Reporting', level: 2 })).toBeVisible();
-    await expect(page.getByText('Please complete all mandatory fields', { exact: true })).toBeVisible();
-  }
-);
-
-test(
-  'TC-061 | System Reference No to Yes updates conditional fields correctly @public @intake',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
-
-    await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.selectSystemReferenceAnswer('No');
-    await submit.previousReporting.verifyToWhomVisible();
-
-    await submit.previousReporting.selectSystemReferenceAnswer('Yes');
-    await submit.previousReporting.verifyReferenceNumberVisible();
-
-    await expect(page.getByRole('textbox', { name: /^First Name/i })).toBeHidden();
-    await expect(page.getByRole('textbox', { name: /^Last Name/i })).toBeHidden();
-  }
-);
-
-test(
-  "TC-062 | System Reference Yes to I don't remember updates conditional fields correctly @public @intake",
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
-
-    await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.selectSystemReferenceAnswer('Yes');
-    await submit.previousReporting.verifyReferenceNumberVisible();
-
-    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
-
-    await expect(page.getByRole('textbox', { name: /Previously Reported Incident Reference Number/i })).toBeHidden();
-    await expect(page.getByRole('textbox', { name: 'Relevant Info', exact: true })).toBeVisible();
-  }
-);
-
-test(
-  'TC-063 | Exact Date No to Yes hides Date Description and displays Date of Reporting @public @intake',
-  async ({ page }) => {
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
-
-    await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
-    await submit.previousReporting.selectExactDate('No');
-    await submit.previousReporting.verifyDateDescriptionVisible();
+    await submit.previousReporting.fillLastName('Ali');
 
     await submit.previousReporting.selectExactDate('Yes');
     await submit.previousReporting.verifyReportingDateVisible();
-    await expect(page.getByRole('textbox', { name: /Date Description/i })).toBeHidden();
+
+    // Date of Reporting intentionally empty.
+    await submit.previousReporting.next();
+
+    await submit.previousReporting.verifyLoaded();
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Evidence',
+        level: 2
+      })
+    ).not.toBeVisible();
+
+    await submit.previousReporting.verifyReportingDateVisible();
   }
 );
 
 test(
-  'TC-064 | Previous Reporting No to Yes displays previous reporting detail questions @public @intake',
+  'TC-073 | Date Description is optional when Exact Date is No @regression @validation @public @intake',
   async ({ page }) => {
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
-    await navigateToPreviousReporting(submit, notice);
 
-    await submit.previousReporting.selectPreviouslyReported('No');
-    await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.verifySystemReferenceQuestionVisible();
+    await navigateToPreviousReporting(
+      submit,
+      notice
+    );
+
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
+
+    await submit.previousReporting
+      .selectSystemReferenceAnswer('No');
+
+    // Required recipient fields
+    await submit.previousReporting
+      .fillFirstName('Ahmed');
+
+    await submit.previousReporting
+      .fillLastName('Ali');
+
+    // Position / Department = Optional
+    // Intentionally left empty.
+
+    await submit.previousReporting
+      .selectExactDate('No');
+
+    await submit.previousReporting
+      .verifyDateDescriptionVisible();
+
+    // Date Description = Optional
+    // Intentionally left empty.
+
+    await submit.previousReporting.next();
+
+    // User must be allowed to continue.
+    await submit.evidence.verifyLoaded();
   }
 );
 
 test(
-  'TC-065 | Previous Reporting accepts Arabic Unicode recipient data @public @intake',
+  'TC-074 | Valid Date of Reporting allows navigation to Evidence @regression @conditional @public @intake',
   async ({ page }) => {
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
+
     await navigateToPreviousReporting(submit, notice);
 
     await submit.previousReporting.selectPreviouslyReported('Yes');
     await submit.previousReporting.selectSystemReferenceAnswer('No');
-    await submit.previousReporting.fillFirstName('أحمد');
-    await submit.previousReporting.fillLastName('محمد');
-    await submit.previousReporting.fillPositionDepartment('إدارة المراجعة الداخلية');
-    await submit.previousReporting.selectExactDate('No');
-    await submit.previousReporting.fillDateDescription('تم الإبلاغ تقريباً خلال أغسطس 2026.');
+
+    await submit.previousReporting.fillFirstName('Ahmed');
+    await submit.previousReporting.fillLastName('Ali');
+
+    await submit.previousReporting.selectExactDate('Yes');
+    await submit.previousReporting.verifyReportingDateVisible();
+
+    await submit.previousReporting.fillReportingDate(
+      '2026-08-15'
+    );
+
     await submit.previousReporting.next();
 
-    await expect(page.getByRole('heading', { name: 'Declaration', level: 2 })).toBeVisible();
+    await submit.evidence.verifyLoaded();
   }
 );
 
 test(
-  'TC-066 | Previous Reporting accepts supported punctuation in free-text fields @public @intake',
+  'TC-075 | Valid Date Description allows navigation to Evidence @regression @conditional @public @intake',
   async ({ page }) => {
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
+
     await navigateToPreviousReporting(submit, notice);
 
     await submit.previousReporting.selectPreviouslyReported('Yes');
-    await submit.previousReporting.selectSystemReferenceAnswer("I don't remember");
-    await submit.previousReporting.fillRelevantInfo("Reported via email / hotline - follow-up #1 (internal).");
-    await submit.previousReporting.fillOutcome('Reviewed; status: pending/follow-up.');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+
+    await submit.previousReporting.fillFirstName('Ahmed');
+    await submit.previousReporting.fillLastName('Ali');
+
     await submit.previousReporting.selectExactDate('No');
-    await submit.previousReporting.fillDateDescription('Approx. Aug/Sep 2026 (exact date unknown).');
+    await submit.previousReporting.verifyDateDescriptionVisible();
+
+    await submit.previousReporting.fillDateDescription(
+      'Approximately August 2026'
+    );
+
     await submit.previousReporting.next();
 
-    await expect(page.getByRole('heading', { name: 'Declaration', level: 2 })).toBeVisible();
+    await submit.evidence.verifyLoaded();
   }
 );
 
-// Boundary/max-length behavior must be based on an approved field-length rule.
-// Keep this visible in the suite without inventing an unsupported requirement.
+test(
+  'TC-076 | Whitespace-only recipient names are rejected @regression @validation @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+
+    await submit.previousReporting.fillFirstName('   ');
+    await submit.previousReporting.fillLastName('   ');
+
+    await submit.previousReporting.selectExactDate('No');
+
+    await submit.previousReporting.fillDateDescription(
+      'Approximately August 2026'
+    );
+
+    await submit.previousReporting.next();
+
+    await submit.previousReporting.verifyLoaded();
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Evidence',
+        level: 2
+      })
+    ).not.toBeVisible();
+  }
+);
+
+test(
+  'TC-077 | Changing System Reference from Yes to No hides Reference Number and displays To Whom @regression @conditional @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+
+    await submit.previousReporting.selectSystemReferenceAnswer('Yes');
+    await submit.previousReporting.verifyReferenceNumberVisible();
+
+    await submit.previousReporting.fillReferenceNumber(
+      'RSG-2026-000001'
+    );
+
+    // Change Yes -> No
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+
+    await submit.previousReporting.verifyToWhomVisible();
+
+    await expect(
+      page.getByRole('textbox', {
+        name: /Reference Number/i
+      })
+    ).toBeHidden();
+  }
+);
+
+test(
+  'TC-078 | Changing System Reference from No to Yes hides To Whom and displays Reference Number @regression @conditional @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+    await submit.previousReporting.verifyToWhomVisible();
+
+    await submit.previousReporting.fillFirstName('Ahmed');
+    await submit.previousReporting.fillLastName('Ali');
+
+    // Change No -> Yes
+    await submit.previousReporting.selectSystemReferenceAnswer('Yes');
+
+    await submit.previousReporting.verifyReferenceNumberVisible();
+
+    await expect(
+      page.getByRole('textbox', {
+        name: /^First Name/i
+      })
+    ).toBeHidden();
+
+    await expect(
+      page.getByRole('textbox', {
+        name: /^Last Name/i
+      })
+    ).toBeHidden();
+  }
+);
+
+test(
+  'TC-079 | Changing Exact Date from Yes to No hides Date of Reporting and displays Date Description @regression @conditional @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+
+    await submit.previousReporting.fillFirstName('Ahmed');
+    await submit.previousReporting.fillLastName('Ali');
+
+    await submit.previousReporting.selectExactDate('Yes');
+    await submit.previousReporting.verifyReportingDateVisible();
+
+    await submit.previousReporting.fillReportingDate(
+      '2026-08-15'
+    );
+
+    // Change Yes -> No
+    await submit.previousReporting.selectExactDate('No');
+
+    await expect(
+      page.getByLabel(/Date of Reporting/i)
+    ).toBeHidden();
+
+    await submit.previousReporting.verifyDateDescriptionVisible();
+  }
+);
+
+test(
+  'TC-080 | Changing Exact Date from No to Yes hides Date Description and displays Date of Reporting @regression @conditional @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+
+    await submit.previousReporting.fillFirstName('Ahmed');
+    await submit.previousReporting.fillLastName('Ali');
+
+    await submit.previousReporting.selectExactDate('No');
+    await submit.previousReporting.verifyDateDescriptionVisible();
+
+    await submit.previousReporting.fillDateDescription(
+      'Approximately August 2026'
+    );
+
+    // Change No -> Yes
+    await submit.previousReporting.selectExactDate('Yes');
+
+    await submit.previousReporting.verifyReportingDateVisible();
+
+    await expect(
+      page.getByRole('textbox', {
+        name: /Date Description/i
+      })
+    ).toBeHidden();
+  }
+);
+
+test(
+  'TC-081 | Changing Previously Reported from No to Yes displays System Reference question @regression @conditional @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('No');
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+
+    await submit.previousReporting
+      .verifySystemReferenceQuestionVisible();
+  }
+);
+
+test(
+  'TC-082 | Previous Reporting data persists after Back navigation @regression @navigation @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('Yes');
+
+    await submit.previousReporting.fillReferenceNumber(
+      'RSG-2026-000001'
+    );
+
+    await submit.previousReporting.fillRelevantInfo(
+      'Previous reporting persistence test.'
+    );
+
+    await submit.previousReporting.fillOutcome(
+      'The previous report was reviewed.'
+    );
+
+    await submit.previousReporting.selectExactDate('Yes');
+
+    await submit.previousReporting.fillReportingDate(
+      '2026-08-15'
+    );
+
+    // Current workflow:
+    // Previous Reporting -> Back -> Witnesses
+    await submit.previousReporting.back();
+
+    await submit.witnesses.verifyLoaded();
+
+    // Witnesses -> Previous Reporting
+    await submit.witnesses.next();
+
+    await submit.previousReporting.verifyLoaded();
+
+    const previousReportingGroup =
+      page.getByRole('radiogroup', {
+        name: 'Have You Previously Reported This Concern?'
+      });
+
+    await expect(
+      previousReportingGroup.getByRole('radio', {
+        name: 'Yes',
+        exact: true
+      })
+    ).toBeChecked();
+
+    const systemReferenceGroup =
+      page.getByRole('radiogroup', {
+        name: 'Do You Have a System Reference Number?'
+      });
+
+    await expect(
+      systemReferenceGroup.getByRole('radio', {
+        name: 'Yes',
+        exact: true
+      })
+    ).toBeChecked();
+
+    await expect(
+      page.getByRole('textbox', {
+        name: /Reference Number/i
+      })
+    ).toHaveValue('RSG-2026-000001');
+
+    await expect(
+      page.getByLabel(/Date of Reporting/i)
+    ).toHaveValue('2026-08-15');
+  }
+);
+
+test(
+  'TC-083 | Previous Reporting accepts Arabic Unicode recipient data @regression @data @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('No');
+
+    await submit.previousReporting.fillFirstName('أحمد');
+    await submit.previousReporting.fillLastName('محمد');
+
+    await submit.previousReporting.fillPositionDepartment(
+      'إدارة المراجعة الداخلية'
+    );
+
+    await submit.previousReporting.selectExactDate('No');
+
+    await submit.previousReporting.fillDateDescription(
+      'تم الإبلاغ تقريباً خلال أغسطس 2026.'
+    );
+
+    await submit.previousReporting.next();
+
+    await submit.evidence.verifyLoaded();
+  }
+);
+
+test(
+  'TC-084 | Previous Reporting accepts supported punctuation in free-text fields @regression @data @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting.selectPreviouslyReported('Yes');
+    await submit.previousReporting.selectSystemReferenceAnswer('Yes');
+
+    await submit.previousReporting.fillReferenceNumber(
+      'RSG-2026-000001'
+    );
+
+    await submit.previousReporting.fillRelevantInfo(
+      'Reported via email / hotline - follow-up #1 (internal).'
+    );
+
+    await submit.previousReporting.fillOutcome(
+      'Reviewed; status: pending/follow-up.'
+    );
+
+    await submit.previousReporting.selectExactDate('No');
+
+    await submit.previousReporting.fillDateDescription(
+      'Approx. Aug/Sep 2026 (exact date unknown).'
+    );
+
+    await submit.previousReporting.next();
+
+    await submit.evidence.verifyLoaded();
+  }
+);
+
+test(
+  'TC-085 | Relevant Info is optional when System Reference is Yes @regression @validation @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
+
+    await submit.previousReporting
+      .selectSystemReferenceAnswer('Yes');
+
+    await submit.previousReporting
+      .fillReferenceNumber('RSG-2026-000001');
+
+    // Relevant Info intentionally empty.
+
+    await submit.previousReporting
+      .selectExactDate('Yes');
+
+    await submit.previousReporting
+      .fillReportingDate('2026-08-15');
+
+    await submit.previousReporting.next();
+
+    // Relevant Info is optional.
+    await submit.evidence.verifyLoaded();
+  }
+);
+
+test(
+  'TC-086 | Outcome is optional when Previously Reported is Yes @regression @validation @public @intake',
+  async ({ page }) => {
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await navigateToPreviousReporting(submit, notice);
+
+    await submit.previousReporting
+      .selectPreviouslyReported('Yes');
+
+    await submit.previousReporting
+      .selectSystemReferenceAnswer('Yes');
+
+    await submit.previousReporting
+      .fillReferenceNumber('RSG-2026-000001');
+
+    // Relevant Info is optional but populate it here
+    // so Outcome is isolated.
+    await submit.previousReporting
+      .fillRelevantInfo(
+        'Previous report information.'
+      );
+
+    // Outcome intentionally empty.
+
+    await submit.previousReporting
+      .selectExactDate('Yes');
+
+    await submit.previousReporting
+      .fillReportingDate('2026-08-15');
+
+    await submit.previousReporting.next();
+
+    // Outcome is optional.
+    await submit.evidence.verifyLoaded();
+  }
+);
+
 test.skip(
-  'TC-067 | Previous Reporting field max-length boundary validation @public @intake @validation',
+  'TC-087 | Previous Reporting maximum field lengths @boundary @public @intake',
   async () => {
-    // TODO: Enable after the approved max lengths for Reference Number,
-    // Relevant Info, Outcome, recipient fields, and Date Description are confirmed.
+    // Pending approved business requirements for maximum
+    // lengths of Previous Reporting text fields.
+    //
+    // Do not invent arbitrary max-length requirements.
   }
 );

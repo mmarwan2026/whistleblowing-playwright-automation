@@ -1,120 +1,328 @@
-import { expect, Page } from '@playwright/test';
-import { ClassificationData } from '../../../../models/public/ClassificationData';
-import { Dropdown } from '../../../../components/common/Dropdown';
+import {
+  expect,
+  Locator,
+  Page
+} from '@playwright/test';
+
+import {
+  ClassificationData
+} from '../../../../models/public/ClassificationData';
+
+import {
+  Dropdown
+} from '../../../../components/common/Dropdown';
+
 
 export class ClassificationStep {
-  constructor(private readonly page: Page) {}
 
-  async verifyLoaded() {
-    await expect(
-      this.page.getByRole('heading', {
-        name: 'Classification',
-        level: 2
-      })
-    ).toBeVisible();
+  constructor(
+    private readonly page: Page
+  ) { }
 
-    await expect(
-      this.page.getByRole('radio', {
-        name: 'Yes',
-        exact: true
-      })
-    ).toBeVisible();
 
-    await expect(
-      this.page.getByRole('radio', {
-        name: 'No',
-        exact: true
-      })
-    ).toBeVisible();
+  // ==========================================================
+  // LOCATORS
+  // ==========================================================
 
-    await expect(
-      this.page.getByRole('combobox', {
-        name: 'Category',
-        exact: true
-      })
-    ).toBeVisible();
+  private categoryDropdown(): Locator {
 
-    await expect(
-      this.page.getByRole('combobox', {
-        name: 'Subcategory',
-        exact: true
-      })
-    ).toBeVisible();
+    /*
+     * Current application DOM:
+     *
+     * Visible field = Category
+     *
+     * But application currently renders:
+     *
+     * <select
+     *   id="subcategory"
+     *   name="subcategory"
+     * >
+     *   <option>Select Category</option>
+     *   ...
+     * </select>
+     *
+     * Do NOT use the incorrect DOM id/name as the business
+     * meaning of this field.
+     *
+     * Locate the select using its Category placeholder option.
+     */
+
+    return this.page
+      .locator('select')
+      .filter({
+        has: this.page.locator(
+          'option',
+          {
+            hasText: 'Select Category'
+          }
+        )
+      });
   }
 
-  async selectInternalAuditAnswer(answer: 'Yes' | 'No') {
-    await this.page
-      .getByRole('radio', {
-        name: answer,
+
+  private otherField(): Locator {
+
+    return this.page.getByLabel(
+      'Other',
+      {
         exact: true
-      })
-      .check();
+      }
+    );
   }
 
-  async selectCategory(category: string) {
-    const categoryDropdown = this.page.getByRole('combobox', {
-      name: 'Category',
-      exact: true
-    });
+
+  // ==========================================================
+  // VERIFY LOADED
+  // ==========================================================
+
+  async verifyLoaded():
+    Promise<void> {
+
+    await expect(
+      this.page.getByRole(
+        'heading',
+        {
+          name: 'Classification',
+          level: 2
+        }
+      )
+    ).toBeVisible();
+
+
+    // --------------------------------------------------------
+    // Internal Audit - Yes
+    // --------------------------------------------------------
+
+    await expect(
+      this.page.getByRole(
+        'radio',
+        {
+          name: 'Yes',
+          exact: true
+        }
+      )
+    ).toBeVisible();
+
+
+    // --------------------------------------------------------
+    // Internal Audit - No
+    // --------------------------------------------------------
+
+    await expect(
+      this.page.getByRole(
+        'radio',
+        {
+          name: 'No',
+          exact: true
+        }
+      )
+    ).toBeVisible();
+
+
+    // --------------------------------------------------------
+    // Category
+    // --------------------------------------------------------
+
+    await expect(
+      this.categoryDropdown()
+    ).toBeVisible();
+
+    await expect(
+      this.categoryDropdown()
+    ).toBeEnabled();
+  }
+
+
+  // ==========================================================
+  // INTERNAL AUDIT
+  // ==========================================================
+
+  async selectInternalAuditAnswer(
+    answer: 'Yes' | 'No'
+  ): Promise<void> {
+
+    const radio =
+      this.page.getByRole(
+        'radio',
+        {
+          name: answer,
+          exact: true
+        }
+      );
+
+    await expect(
+      radio
+    ).toBeVisible();
+
+    await radio.check();
+
+    await expect(
+      radio
+    ).toBeChecked();
+  }
+
+
+  // ==========================================================
+  // CATEGORY
+  // ==========================================================
+
+  async selectCategory(
+    category: string
+  ): Promise<void> {
+
+    const dropdown =
+      this.categoryDropdown();
+
+    await expect(
+      dropdown
+    ).toBeVisible();
+
+    await expect(
+      dropdown
+    ).toBeEnabled();
 
     await new Dropdown(
       this.page,
-      categoryDropdown
-    ).select(category);
+      dropdown
+    ).select(
+      category
+    );
+
+
+    // Verify selected Category.
+    await expect(
+      dropdown
+    ).toHaveValue(
+      category
+    );
   }
 
-  async selectSubcategory(subCategory: string) {
-    const subcategoryDropdown = this.page.getByRole('combobox', {
-      name: 'Subcategory',
-      exact: true
-    });
 
-    await new Dropdown(
-      this.page,
-      subcategoryDropdown
-    ).select(subCategory);
+  // ==========================================================
+  // OTHER
+  // ==========================================================
+
+  async fillOther(
+    value: string
+  ): Promise<void> {
+
+    const other =
+      this.otherField();
+
+    await expect(
+      other
+    ).toBeVisible();
+
+    await expect(
+      other
+    ).toBeEnabled();
+
+    await other.fill(
+      value
+    );
+
+    await expect(
+      other
+    ).toHaveValue(
+      value
+    );
   }
 
-  async fill(data: ClassificationData) {
-    if (data.internalAuditAnswer) {
+
+  // ==========================================================
+  // FILL CLASSIFICATION
+  // ==========================================================
+
+  async fill(
+    data: ClassificationData
+  ): Promise<void> {
+
+    // --------------------------------------------------------
+    // Internal Audit Question
+    // --------------------------------------------------------
+
+    if (
+      data.internalAuditAnswer
+    ) {
+
       await this.selectInternalAuditAnswer(
         data.internalAuditAnswer
       );
     }
 
-    await this.selectCategory(data.category);
 
-    if (data.subCategory) {
-      await this.selectSubcategory(
-        data.subCategory
+    // --------------------------------------------------------
+    // Category
+    // --------------------------------------------------------
+
+    await this.selectCategory(
+      data.category
+    );
+
+
+    // --------------------------------------------------------
+    // Other - Conditional
+    // --------------------------------------------------------
+
+    if (
+      data.otherText
+    ) {
+
+      await this.fillOther(
+        data.otherText
       );
-    }
-
-    if (data.otherText) {
-      const other = this.page.getByLabel(
-        'Other',
-        { exact: true }
-      );
-
-      if (await other.isVisible().catch(() => false)) {
-        await other.fill(data.otherText);
-      }
     }
   }
 
-  async next() {
-    await this.page
-      .getByRole('button', {
-        name: 'Next'
-      })
-      .click();
+
+  // ==========================================================
+  // NAVIGATION
+  // ==========================================================
+
+  async next():
+    Promise<void> {
+
+    const nextButton =
+      this.page.getByRole(
+        'button',
+        {
+          name: 'Next',
+          exact: true
+        }
+      );
+
+    await expect(
+      nextButton
+    ).toBeVisible();
+
+    await expect(
+      nextButton
+    ).toBeEnabled();
+
+    await nextButton.click();
   }
 
-  async back() {
-    await this.page
-      .getByRole('button', {
-        name: 'Back'
-      })
-      .click();
+
+  async back():
+    Promise<void> {
+
+    const backButton =
+      this.page.getByRole(
+        'button',
+        {
+          name: 'Back',
+          exact: true
+        }
+      );
+
+    await expect(
+      backButton
+    ).toBeVisible();
+
+    await expect(
+      backButton
+    ).toBeEnabled();
+
+    await backButton.click();
   }
 }

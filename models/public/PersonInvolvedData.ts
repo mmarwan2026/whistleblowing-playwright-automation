@@ -1,3 +1,8 @@
+export type PersonRoleInIncident =
+  | 'Accused'
+  | 'Victim';
+
+
 export interface InvolvedPerson {
   fullName: string;
   position: string;
@@ -6,11 +11,15 @@ export interface InvolvedPerson {
   department?: string;
   email?: string;
   phone?: string;
-  roleInIncident?: string;
+
+  roleInIncident?: PersonRoleInIncident;
 }
 
+
 export interface PersonInvolvedData {
-  canIdentify: 'Yes' | 'No';
+  canIdentify:
+  | 'Yes'
+  | 'No';
 
   persons?: InvolvedPerson[];
 }

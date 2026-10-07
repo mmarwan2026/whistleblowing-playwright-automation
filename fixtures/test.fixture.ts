@@ -1,32 +1,25 @@
-import { test as base } from '@playwright/test';
-import { SubmitReportPage } from '../pages/public/submit-report/SubmitReportPage';
-import { FollowUpFlow } from '../flows/public/FollowUpFlow';
-import { AnonymousReportFlow } from '../flows/public/AnonymousReportFlow';
+import {
+  test as base,
+  expect,
+} from '@playwright/test';
+
 import { DashboardPage } from '../pages/staff/DashboardPage';
 
-type Fixtures = {
-  submitReportPage: SubmitReportPage;
-  anonymousReportFlow: AnonymousReportFlow;
-  followUpFlow: FollowUpFlow;
+type TestFixtures = {
   dashboardPage: DashboardPage;
 };
 
-export const test = base.extend<Fixtures>({
-  submitReportPage: async ({ page }, use) => {
-    await use(new SubmitReportPage(page));
-  },
+export const test =
+  base.extend<TestFixtures>({
+    dashboardPage: async (
+      { page },
+      use,
+    ) => {
+      const dashboardPage =
+        new DashboardPage(page);
 
-  anonymousReportFlow: async ({ page }, use) => {
-    await use(new AnonymousReportFlow(page));
-  },
+      await use(dashboardPage);
+    },
+  });
 
-  followUpFlow: async ({ page }, use) => {
-    await use(new FollowUpFlow(page));
-  },
-
-  dashboardPage: async ({ page }, use) => {
-    await use(new DashboardPage(page));
-  }
-});
-
-export { expect } from '@playwright/test';
+export { expect };

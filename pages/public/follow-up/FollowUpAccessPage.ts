@@ -15,13 +15,13 @@ export class FollowUpAccessPage {
 
   constructor(
     private readonly page: Page
-  ) {}
+  ) { }
 
   // ==========================================================
   // OPEN FOLLOW-UP PAGE
   // ==========================================================
 
-  async open() {
+  async open(): Promise<void> {
 
     await this.page.goto(
       Routes.public.followUp
@@ -34,7 +34,7 @@ export class FollowUpAccessPage {
   // VERIFY PAGE LOADED
   // ==========================================================
 
-  async verifyLoaded() {
+  async verifyLoaded(): Promise<void> {
 
     await expect(
       this.page.getByRole('heading', {
@@ -75,7 +75,7 @@ export class FollowUpAccessPage {
 
   async fillReferenceNumber(
     referenceNumber: string
-  ) {
+  ): Promise<void> {
 
     const referenceInput =
       this.page.getByLabel(
@@ -101,12 +101,12 @@ export class FollowUpAccessPage {
   }
 
   // ==========================================================
-  // FILL ACCESS KEY
+  // FILL ACCESS KEY / PIN
   // ==========================================================
 
   async fillAccessKey(
     accessKey: string
-  ) {
+  ): Promise<void> {
 
     const accessKeyInput =
       this.page.getByLabel(
@@ -133,11 +133,13 @@ export class FollowUpAccessPage {
 
   // ==========================================================
   // VERIFY ENTERED CREDENTIALS
+  //
+  // Never log the Access Key / PIN.
   // ==========================================================
 
   async verifyCredentialsEntered(
     credentials: FollowUpCredentials
-  ) {
+  ): Promise<void> {
 
     const referenceInput =
       this.page.getByLabel(
@@ -172,7 +174,7 @@ export class FollowUpAccessPage {
   // ACCESS MY CASE
   // ==========================================================
 
-  async clickAccessMyCase() {
+  async clickAccessMyCase(): Promise<void> {
 
     const accessButton =
       this.page.getByRole('button', {
@@ -197,7 +199,7 @@ export class FollowUpAccessPage {
 
   async access(
     credentials: FollowUpCredentials
-  ) {
+  ): Promise<void> {
 
     await this.fillReferenceNumber(
       credentials.referenceNumber

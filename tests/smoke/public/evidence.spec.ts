@@ -105,10 +105,9 @@ async function navigateToEvidence(
       'Conflict of Interest'
     );
 
-  await submit.classification
-    .selectSubcategory(
-      'Nepotism/Cronyism'
-    );
+  await submit.classification.selectCategory(
+    'Nepotism/Cronyism'
+  );
 
   await submit.classification.next();
 
@@ -162,12 +161,12 @@ async function navigateToEvidence(
 
 
 // ============================================================
-// TC-034
+// TC-055
 // Evidence = No
 // ============================================================
 
 test(
-  'TC-034 | User can select No for supporting evidence and continue to Previous Reporting @smoke @public @intake',
+  'TC-055 | User can select No for supporting evidence and continue to Previous Reporting @smoke @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -200,12 +199,12 @@ test(
 
 
 // ============================================================
-// TC-035
+// TC-056
 // Yes without attachment
 // ============================================================
 
 test(
-  'TC-035 | Evidence attachment is required when Yes is selected @negative @public @intake',
+  'TC-056 | Evidence attachment is required when Yes is selected @regression @validation @negative @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -243,12 +242,12 @@ test(
 
 
 // ============================================================
-// TC-036
+// TC-057
 // Valid PDF
 // ============================================================
 
 test(
-  'TC-036 | User can upload valid PDF evidence and continue @public @intake',
+  'TC-057 | User can upload valid PDF evidence and continue @smoke @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -292,18 +291,13 @@ test(
 
 
 // ============================================================
-// TC-037
-// Allowed File Types
-// ============================================================
-
-// ============================================================
-// TC-037
+// TC-058
 // Allowed Evidence File Types
 // PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, MP4
 // ============================================================
 
 test.describe(
-  'TC-037 | Allowed Evidence File Types',
+  'TC-058 | Allowed Evidence File Types',
   () => {
 
     const allowedFiles = [
@@ -344,7 +338,7 @@ test.describe(
     for (const file of allowedFiles) {
 
       test(
-        `TC-037 | User can upload ${file.type} evidence @public @intake`,
+        `TC-058 | User can upload ${file.type} evidence @regression @filetype @public @intake`,
         async ({ page }) => {
 
           const submit =
@@ -403,12 +397,12 @@ test.describe(
   }
 );
 // ============================================================
-// TC-038
+// TC-059
 // Unsupported File Type
 // ============================================================
 
 test(
-  'TC-038 | Unsupported evidence file type is rejected @negative @public @intake',
+  'TC-059 | Unsupported evidence file type is rejected @regression @validation @negative @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -449,12 +443,12 @@ test(
 
 
 // ============================================================
-// TC-039
+// TC-060
 // Remove Uploaded File
 // ============================================================
 
 test(
-  'TC-039 | User can remove uploaded evidence before submission @public @intake',
+  'TC-060 | User can remove uploaded evidence before submission @regression @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -497,12 +491,12 @@ test(
 
 
 // ============================================================
-// TC-040
+// TC-061
 // Multiple Evidence Files
 // ============================================================
 
 test(
-  'TC-040 | User can upload multiple evidence files @public @intake',
+  'TC-061 | User can upload multiple evidence files @regression @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -541,12 +535,12 @@ test(
 
 
 // ============================================================
-// TC-041
+// TC-062
 // Back Navigation + Persistence
 // ============================================================
 
 test(
-  'TC-041 | Evidence data persists after Back navigation @public @intake',
+  'TC-062 | Evidence data persists after Back navigation @regression @navigation @public @intake',
   async ({ page }) => {
 
     const submit =

@@ -1,194 +1,419 @@
-import { expect, Page } from '@playwright/test';
+import {
+  expect,
+  Locator,
+  Page
+} from '@playwright/test';
+
+import {
+  PreviousReportingData
+} from '../../../../models/public/PreviousReportingData';
 
 export class PreviousReportingStep {
-  constructor(private readonly page: Page) {}
+
+  constructor(
+    private readonly page: Page
+  ) { }
+
+  // =========================================================
+  // CORE LOCATORS
+  // =========================================================
+
+  private heading(): Locator {
+    return this.page.getByRole(
+      'heading',
+      {
+        name: 'Previous Reporting',
+        level: 2
+      }
+    );
+  }
+
+  private previouslyReportedHeading(): Locator {
+    return this.page.getByRole(
+      'heading',
+      {
+        name:
+          'Have You Previously Reported This Concern?',
+        level: 3
+      }
+    );
+  }
+
+  private previouslyReportedGroup(): Locator {
+    return this.page.getByRole(
+      'radiogroup',
+      {
+        name:
+          'Have You Previously Reported This Concern?'
+      }
+    );
+  }
+
+  private systemReferenceHeading(): Locator {
+    return this.page.getByRole(
+      'heading',
+      {
+        name:
+          'Do You Have a System Reference Number?',
+        level: 3
+      }
+    );
+  }
+
+  private systemReferenceGroup(): Locator {
+    return this.page.getByRole(
+      'radiogroup',
+      {
+        name:
+          'Do You Have a System Reference Number?'
+      }
+    );
+  }
+
+  private referenceNumberField(): Locator {
+    return this.page.getByRole(
+      'textbox',
+      {
+        name:
+          /Previously Reported Incident Reference Number/i
+      }
+    );
+  }
+
+  private relevantInfoField(): Locator {
+    return this.page.getByRole(
+      'textbox',
+      {
+        name: 'Relevant Info',
+        exact: true
+      }
+    );
+  }
+
+  private outcomeField(): Locator {
+    return this.page.getByRole(
+      'textbox',
+      {
+        name: /Outcome, If Known/i
+      }
+    );
+  }
+
+  private firstNameField(): Locator {
+    return this.page.getByRole(
+      'textbox',
+      {
+        name: /First Name/i
+      }
+    );
+  }
+
+  private lastNameField(): Locator {
+    return this.page.getByRole(
+      'textbox',
+      {
+        name: /Last Name/i
+      }
+    );
+  }
+
+  private positionDepartmentField(): Locator {
+    return this.page.getByRole(
+      'textbox',
+      {
+        name:
+          /Position\s*\/\s*Department/i
+      }
+    );
+  }
+
+  private exactDateHeading(): Locator {
+    return this.page.getByRole(
+      'heading',
+      {
+        name:
+          /Do You Know the Previous Report's Exact Date\?/i,
+        level: 3
+      }
+    );
+  }
+
+  private reportingDateField(): Locator {
+    return this.page.getByLabel(
+      /Date of Reporting/i
+    );
+  }
+
+  private dateDescriptionField(): Locator {
+    return this.page.getByRole(
+      'textbox',
+      {
+        name: /Date Description/i
+      }
+    );
+  }
+
+  private nextButton(): Locator {
+    return this.page.getByRole(
+      'button',
+      {
+        name: 'Next',
+        exact: true
+      }
+    );
+  }
+
+  private backButton(): Locator {
+    return this.page.getByRole(
+      'button',
+      {
+        name: 'Back',
+        exact: true
+      }
+    );
+  }
 
   // =========================================================
   // VERIFY PAGE
   // =========================================================
 
-  async verifyLoaded() {
+  async verifyLoaded(): Promise<void> {
+
     await expect(
-      this.page.getByRole('heading', {
-        name: 'Previous Reporting',
-        level: 2
-      })
+      this.heading()
     ).toBeVisible();
 
     await expect(
-      this.page.getByRole('heading', {
-        name: 'Have You Previously Reported This Concern?',
-        level: 3
-      })
+      this.previouslyReportedHeading()
     ).toBeVisible();
 
-    const previousReportingGroup =
-      this.page.getByRole('radiogroup', {
-        name: 'Have You Previously Reported This Concern?'
-      });
+    const group =
+      this.previouslyReportedGroup();
 
     await expect(
-      previousReportingGroup
+      group
     ).toBeVisible();
 
     await expect(
-      previousReportingGroup.getByRole('radio', {
-        name: 'Yes',
-        exact: true
-      })
+      group.getByRole(
+        'radio',
+        {
+          name: 'Yes',
+          exact: true
+        }
+      )
     ).toBeVisible();
 
     await expect(
-      previousReportingGroup.getByRole('radio', {
-        name: 'No',
-        exact: true
-      })
+      group.getByRole(
+        'radio',
+        {
+          name: 'No',
+          exact: true
+        }
+      )
+    ).toBeVisible();
+
+    await expect(
+      this.nextButton()
+    ).toBeVisible();
+
+    await expect(
+      this.backButton()
     ).toBeVisible();
   }
 
   // =========================================================
   // PREVIOUSLY REPORTED
-  // Yes / No
   // =========================================================
 
   async selectPreviouslyReported(
-    answer: 'Yes' | 'No'
-  ) {
+    answer:
+      PreviousReportingData['previouslyReported']
+  ): Promise<void> {
+
     const group =
-      this.page.getByRole('radiogroup', {
-        name: 'Have You Previously Reported This Concern?'
-      });
+      this.previouslyReportedGroup();
 
-    await expect(group).toBeVisible();
+    await expect(
+      group
+    ).toBeVisible();
 
-    const radio = group.getByRole('radio', {
-      name: answer,
-      exact: true
-    });
+    const radio =
+      group.getByRole(
+        'radio',
+        {
+          name: answer,
+          exact: true
+        }
+      );
 
-    await expect(radio).toBeVisible();
+    await expect(
+      radio
+    ).toBeVisible();
+
+    await expect(
+      radio
+    ).toBeEnabled();
 
     await radio.check();
 
-    await expect(radio).toBeChecked();
+    await expect(
+      radio
+    ).toBeChecked();
   }
 
   // =========================================================
   // SYSTEM REFERENCE QUESTION
+  //
+  // Current confirmed UI:
+  //
+  // Do You Have a System Reference Number?
+  // - Yes
+  // - No
+  // - Forgot It
   // =========================================================
 
-  async verifySystemReferenceQuestionVisible() {
+  async verifySystemReferenceQuestionVisible():
+    Promise<void> {
+
     await expect(
-      this.page.getByRole('heading', {
-        name: 'Do You Have a System Reference Number?',
-        level: 3
-      })
+      this.systemReferenceHeading()
     ).toBeVisible();
 
-    /*
-     * Current application accessibility structure:
-     *
-     * radiogroup #1
-     * = Have You Previously Reported This Concern?
-     *
-     * radiogroup #2
-     * = Do You Have a System Reference Number?
-     *
-     * The second radiogroup currently has NO accessible name.
-     */
-
-    const group = this.page
-      .getByRole('radiogroup')
-      .nth(1);
-
-    await expect(group).toBeVisible();
+    const group =
+      this.systemReferenceGroup();
 
     await expect(
-      group.getByRole('radio', {
-        name: 'Yes',
-        exact: true
-      })
+      group
     ).toBeVisible();
 
     await expect(
-      group.getByRole('radio', {
-        name: 'No',
-        exact: true
-      })
+      group.getByRole(
+        'radio',
+        {
+          name: 'Yes',
+          exact: true
+        }
+      )
     ).toBeVisible();
 
     await expect(
-      group.getByRole('radio', {
-        name: "I don't remember",
-        exact: true
-      })
+      group.getByRole(
+        'radio',
+        {
+          name: 'No',
+          exact: true
+        }
+      )
+    ).toBeVisible();
+
+    await expect(
+      group.getByRole(
+        'radio',
+        {
+          name: 'Forgot It',
+          exact: true
+        }
+      )
     ).toBeVisible();
   }
 
   // =========================================================
   // SYSTEM REFERENCE
-  // Yes / No / I don't remember
+  //
+  // MODEL MAY STILL USE:
+  // "I don't remember"
+  //
+  // UI CURRENTLY USES:
+  // "Forgot It"
+  //
+  // Mapping is handled here so existing test data does not
+  // need to be changed immediately.
   // =========================================================
 
   async selectSystemReferenceAnswer(
-    answer: 'Yes' | 'No' | "I don't remember"
-  ) {
-    /*
-     * Do NOT use:
-     *
-     * getByRole('radiogroup', {
-     *   name: 'Do You Have a System Reference Number?'
-     * })
-     *
-     * The current DOM does not expose an accessible name
-     * for this radiogroup.
-     */
+    answer:
+      PreviousReportingData['hasSystemReference']
+  ): Promise<void> {
 
-    const group = this.page
-      .getByRole('radiogroup')
-      .nth(1);
+    if (!answer) {
+      return;
+    }
 
-    await expect(group).toBeVisible();
+    const group =
+      this.systemReferenceGroup();
 
-    const radio = group.getByRole('radio', {
-      name: answer,
-      exact: true
-    });
+    await expect(
+      group
+    ).toBeVisible();
 
-    await expect(radio).toBeVisible();
+    let uiAnswer: string;
+
+    if (
+      answer === "I don't remember"
+    ) {
+      uiAnswer = 'Forgot It';
+    } else {
+      uiAnswer = answer;
+    }
+
+    const radio =
+      group.getByRole(
+        'radio',
+        {
+          name: uiAnswer,
+          exact: true
+        }
+      );
+
+    await expect(
+      radio
+    ).toBeVisible();
+
+    await expect(
+      radio
+    ).toBeEnabled();
 
     await radio.check();
 
-    await expect(radio).toBeChecked();
+    await expect(
+      radio
+    ).toBeChecked();
   }
 
   // =========================================================
   // REFERENCE NUMBER
-  // Required when System Reference = Yes
   // =========================================================
 
-  async verifyReferenceNumberVisible() {
-    const field = this.page.getByRole('textbox', {
-      name: /Previously Reported Incident Reference Number/i
-    });
+  async verifyReferenceNumberVisible():
+    Promise<void> {
 
-    await expect(field).toBeVisible();
+    await expect(
+      this.referenceNumberField()
+    ).toBeVisible();
   }
 
   async fillReferenceNumber(
     referenceNumber: string
-  ) {
-    const field = this.page.getByRole('textbox', {
-      name: /Previously Reported Incident Reference Number/i
-    });
+  ): Promise<void> {
 
-    await expect(field).toBeVisible();
-
-    await field.fill(referenceNumber);
+    const field =
+      this.referenceNumberField();
 
     await expect(
       field
-    ).toHaveValue(referenceNumber);
+    ).toBeVisible();
+
+    await field.fill(
+      referenceNumber
+    );
+
+    await expect(
+      field
+    ).toHaveValue(
+      referenceNumber
+    );
   }
 
   // =========================================================
@@ -197,81 +422,102 @@ export class PreviousReportingStep {
 
   async fillRelevantInfo(
     relevantInfo: string
-  ) {
-    const field = this.page.getByRole('textbox', {
-      name: 'Relevant Info',
-      exact: true
-    });
+  ): Promise<void> {
 
-    await expect(field).toBeVisible();
-
-    await field.fill(relevantInfo);
+    const field =
+      this.relevantInfoField();
 
     await expect(
       field
-    ).toHaveValue(relevantInfo);
+    ).toBeVisible();
+
+    await field.fill(
+      relevantInfo
+    );
+
+    await expect(
+      field
+    ).toHaveValue(
+      relevantInfo
+    );
   }
 
   // =========================================================
-  // OUTCOME, IF KNOWN
+  // OUTCOME
   // =========================================================
 
   async fillOutcome(
     outcome: string
-  ) {
-    const field = this.page.getByRole('textbox', {
-      name: /Outcome, If Known/i
-    });
+  ): Promise<void> {
 
-    await expect(field).toBeVisible();
-
-    await field.fill(outcome);
+    const field =
+      this.outcomeField();
 
     await expect(
       field
-    ).toHaveValue(outcome);
+    ).toBeVisible();
+
+    await field.fill(
+      outcome
+    );
+
+    await expect(
+      field
+    ).toHaveValue(
+      outcome
+    );
   }
 
   // =========================================================
   // TO WHOM - FIRST NAME
-  // System Reference = No
   // =========================================================
 
   async fillFirstName(
     firstName: string
-  ) {
-    const field = this.page.getByRole('textbox', {
-      name: /First Name/i
-    });
+  ): Promise<void> {
 
-    await expect(field).toBeVisible();
-
-    await field.fill(firstName);
+    const field =
+      this.firstNameField();
 
     await expect(
       field
-    ).toHaveValue(firstName);
+    ).toBeVisible();
+
+    await field.fill(
+      firstName
+    );
+
+    await expect(
+      field
+    ).toHaveValue(
+      firstName
+    );
   }
 
   // =========================================================
   // TO WHOM - LAST NAME
-  // System Reference = No
   // =========================================================
 
   async fillLastName(
     lastName: string
-  ) {
-    const field = this.page.getByRole('textbox', {
-      name: /Last Name/i
-    });
+  ): Promise<void> {
 
-    await expect(field).toBeVisible();
-
-    await field.fill(lastName);
+    const field =
+      this.lastNameField();
 
     await expect(
       field
-    ).toHaveValue(lastName);
+    ).toBeVisible();
+
+    await field.fill(
+      lastName
+    );
+
+    await expect(
+      field
+    ).toHaveValue(
+      lastName
+    );
   }
 
   // =========================================================
@@ -280,25 +526,33 @@ export class PreviousReportingStep {
 
   async fillPositionDepartment(
     positionDepartment: string
-  ) {
-    const field = this.page.getByRole('textbox', {
-      name: /Position\s*\/\s*Department/i
-    });
+  ): Promise<void> {
 
-    await expect(field).toBeVisible();
-
-    await field.fill(positionDepartment);
+    const field =
+      this.positionDepartmentField();
 
     await expect(
       field
-    ).toHaveValue(positionDepartment);
+    ).toBeVisible();
+
+    await field.fill(
+      positionDepartment
+    );
+
+    await expect(
+      field
+    ).toHaveValue(
+      positionDepartment
+    );
   }
 
   // =========================================================
-  // VERIFY TO WHOM SECTION
+  // VERIFY TO WHOM
   // =========================================================
 
-  async verifyToWhomVisible() {
+  async verifyToWhomVisible():
+    Promise<void> {
+
     await expect(
       this.page.getByText(
         'To Whom?',
@@ -309,164 +563,326 @@ export class PreviousReportingStep {
     ).toBeVisible();
 
     await expect(
-      this.page.getByRole('textbox', {
-        name: /First Name/i
-      })
+      this.firstNameField()
     ).toBeVisible();
 
     await expect(
-      this.page.getByRole('textbox', {
-        name: /Last Name/i
-      })
+      this.lastNameField()
     ).toBeVisible();
   }
 
   // =========================================================
   // EXACT DATE
-  // Yes / No
+  //
+  // Exact-date radiogroup has not yet been independently
+  // discovered. We keep the existing last() strategy here
+  // temporarily instead of inventing an accessible name.
   // =========================================================
 
   async selectExactDate(
-    answer: 'Yes' | 'No'
-  ) {
-    const heading = this.page.getByRole('heading', {
-      name: /Do You Know the Previous Report's Exact Date\?/i,
-      level: 3
-    });
+    answer:
+      PreviousReportingData['knowsExactDate']
+  ): Promise<void> {
 
-    await expect(heading).toBeVisible();
+    if (!answer) {
+      return;
+    }
 
-    /*
-     * We will keep this locator separate because the
-     * accessibility snapshot for the Exact Date radiogroup
-     * must be confirmed after the System Reference path
-     * is working.
-     */
+    await expect(
+      this.exactDateHeading()
+    ).toBeVisible();
 
     const groups =
-      this.page.getByRole('radiogroup');
+      this.page.getByRole(
+        'radiogroup'
+      );
 
-    const group = groups.last();
+    const group =
+      groups.last();
 
-    await expect(group).toBeVisible();
+    await expect(
+      group
+    ).toBeVisible();
 
-    const radio = group.getByRole('radio', {
-      name: answer,
-      exact: true
-    });
+    const radio =
+      group.getByRole(
+        'radio',
+        {
+          name: answer,
+          exact: true
+        }
+      );
 
-    await expect(radio).toBeVisible();
+    await expect(
+      radio
+    ).toBeVisible();
+
+    await expect(
+      radio
+    ).toBeEnabled();
 
     await radio.check();
 
-    await expect(radio).toBeChecked();
+    await expect(
+      radio
+    ).toBeChecked();
   }
 
   // =========================================================
-  // DATE OF REPORTING
-  // Exact Date = Yes
+  // REPORTING DATE
   // =========================================================
 
-  async verifyReportingDateVisible() {
-    const field = this.page.getByLabel(
-      /Date of Reporting/i
-    );
+  async verifyReportingDateVisible():
+    Promise<void> {
 
-    await expect(field).toBeVisible();
+    await expect(
+      this.reportingDateField()
+    ).toBeVisible();
   }
 
   async fillReportingDate(
     date: string
-  ) {
-    const field = this.page.getByLabel(
-      /Date of Reporting/i
-    );
+  ): Promise<void> {
 
-    await expect(field).toBeVisible();
-
-    // Native date input:
-    // YYYY-MM-DD
-    await field.fill(date);
+    const field =
+      this.reportingDateField();
 
     await expect(
       field
-    ).toHaveValue(date);
+    ).toBeVisible();
+
+    await field.fill(
+      date
+    );
+
+    await expect(
+      field
+    ).toHaveValue(
+      date
+    );
   }
 
   // =========================================================
   // DATE DESCRIPTION
-  // Exact Date = No
   // =========================================================
 
-  async verifyDateDescriptionVisible() {
-    const field = this.page.getByRole('textbox', {
-      name: /Date Description/i
-    });
+  async verifyDateDescriptionVisible():
+    Promise<void> {
 
-    await expect(field).toBeVisible();
+    await expect(
+      this.dateDescriptionField()
+    ).toBeVisible();
   }
 
   async fillDateDescription(
     description: string
-  ) {
-    const field = this.page.getByRole('textbox', {
-      name: /Date Description/i
-    });
+  ): Promise<void> {
 
-    await expect(field).toBeVisible();
-
-    await field.fill(description);
+    const field =
+      this.dateDescriptionField();
 
     await expect(
       field
-    ).toHaveValue(description);
+    ).toBeVisible();
+
+    await field.fill(
+      description
+    );
+
+    await expect(
+      field
+    ).toHaveValue(
+      description
+    );
+  }
+
+  // =========================================================
+  // FILL COMPLETE STEP
+  // =========================================================
+
+  async fill(
+    data: PreviousReportingData
+  ): Promise<void> {
+
+    await this.selectPreviouslyReported(
+      data.previouslyReported
+    );
+
+    // ---------------------------------------------------------
+    // Previously Reported = No
+    // ---------------------------------------------------------
+
+    if (
+      data.previouslyReported === 'No'
+    ) {
+      return;
+    }
+
+    // ---------------------------------------------------------
+    // SYSTEM REFERENCE
+    // ---------------------------------------------------------
+
+    if (
+      data.hasSystemReference
+    ) {
+
+      await this.selectSystemReferenceAnswer(
+        data.hasSystemReference
+      );
+
+      // -------------------------------------------------------
+      // SYSTEM REFERENCE = YES
+      // -------------------------------------------------------
+
+      if (
+        data.hasSystemReference === 'Yes'
+      ) {
+
+        if (
+          data.referenceNumber
+        ) {
+          await this.fillReferenceNumber(
+            data.referenceNumber
+          );
+        }
+
+        // Relevant Info is currently displayed
+        // only for System Reference = Yes.
+        if (
+          data.relevantInfo
+        ) {
+          await this.fillRelevantInfo(
+            data.relevantInfo
+          );
+        }
+      }
+      // -------------------------------------------------------
+      // SYSTEM REFERENCE = NO
+      // -------------------------------------------------------
+
+      if (
+        data.hasSystemReference === 'No'
+      ) {
+
+        if (
+          data.firstName
+        ) {
+          await this.fillFirstName(
+            data.firstName
+          );
+        }
+
+        if (
+          data.lastName
+        ) {
+          await this.fillLastName(
+            data.lastName
+          );
+        }
+
+        if (
+          data.positionDepartment
+        ) {
+          await this.fillPositionDepartment(
+            data.positionDepartment
+          );
+        }
+      }
+
+      // -------------------------------------------------------
+      // MODEL "I don't remember"
+      // -> CURRENT UI "Forgot It"
+      //
+      // No reference number or To Whom data is filled.
+      // -------------------------------------------------------
+    }
+
+
+
+    // ---------------------------------------------------------
+    // OUTCOME
+    // ---------------------------------------------------------
+
+    if (
+      data.outcomeIfKnown
+    ) {
+
+      await this.fillOutcome(
+        data.outcomeIfKnown
+      );
+    }
+
+    // ---------------------------------------------------------
+    // EXACT DATE
+    // ---------------------------------------------------------
+
+    if (
+      data.knowsExactDate
+    ) {
+
+      await this.selectExactDate(
+        data.knowsExactDate
+      );
+
+      if (
+        data.knowsExactDate === 'Yes' &&
+        data.reportingDate
+      ) {
+
+        await this.fillReportingDate(
+          data.reportingDate
+        );
+      }
+
+      if (
+        data.knowsExactDate === 'No' &&
+        data.dateDescription
+      ) {
+
+        await this.fillDateDescription(
+          data.dateDescription
+        );
+      }
+    }
   }
 
   // =========================================================
   // NEXT
   // =========================================================
 
-  async next() {
-    const nextButton = this.page.getByRole(
-      'button',
-      {
-        name: 'Next',
-        exact: true
-      }
-    );
+  async next(): Promise<void> {
+
+    const button =
+      this.nextButton();
 
     await expect(
-      nextButton
+      button
     ).toBeVisible();
 
     await expect(
-      nextButton
+      button
     ).toBeEnabled();
 
-    await nextButton.click();
+    await button.click();
   }
 
   // =========================================================
   // BACK
   // =========================================================
 
-  async back() {
-    const backButton = this.page.getByRole(
-      'button',
-      {
-        name: 'Back',
-        exact: true
-      }
-    );
+  async back(): Promise<void> {
+
+    const button =
+      this.backButton();
 
     await expect(
-      backButton
+      button
     ).toBeVisible();
 
     await expect(
-      backButton
+      button
     ).toBeEnabled();
 
-    await backButton.click();
+    await button.click();
   }
 }

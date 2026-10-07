@@ -1,6 +1,12 @@
-import { AllegationData } from '../../models/public/AllegationData';
+import {
+  AllegationData
+} from '../../models/public/AllegationData';
 
 export class AllegationFactory {
+
+  // ==========================================================
+  // DEFAULT VALID ALLEGATION
+  // ==========================================================
 
   static default(): AllegationData {
 

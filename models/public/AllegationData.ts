@@ -1,4 +1,5 @@
 export interface AllegationData {
+
   incidentTitle: string;
 
   whatHappened: string;
@@ -15,5 +16,8 @@ export interface AllegationData {
 
   incidentDateDescription?: string;
 
-  ongoing?: 'Yes' | 'No' | "I don't know";
+  ongoing?:
+  | 'Yes'
+  | 'No'
+  | "Unknown";
 }

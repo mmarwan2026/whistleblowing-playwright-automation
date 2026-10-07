@@ -1,24 +1,67 @@
-import { ReporterInfoData } from './ReporterData';
-import { ClassificationData } from './ClassificationData';
-import { AllegationData } from './AllegationData';
-import { PersonInvolvedData } from './PersonInvolvedData';
-import { WitnessData } from './WitnessData';
-import { EvidenceData } from './EvidenceData';
-import { PreviousReportingData } from './PreviousReportingData';
-import { DeclarationData } from './DeclarationData';
+import {
+  ReporterInfoData
+} from './ReporterData';
+
+import {
+  ClassificationData
+} from './ClassificationData';
+
+import {
+  AllegationData
+} from './AllegationData';
+
+import {
+  PersonInvolvedData
+} from './PersonInvolvedData';
+
+import {
+  EntitiesInvolvedData
+} from './EntitiesInvolvedData';
+
+import {
+  WitnessData
+} from './WitnessData';
+
+import {
+  EvidenceData
+} from './EvidenceData';
+
+import {
+  PreviousReportingData
+} from './PreviousReportingData';
+
+import {
+  DeclarationData
+} from './DeclarationData';
+
 
 export interface ReportData {
-  reporter: ReporterInfoData;
-  classification: ClassificationData;
-  allegation: AllegationData;
 
-  personsInvolved: PersonInvolvedData;
+  reporter:
+  ReporterInfoData;
 
-  witnesses: WitnessData;
+  classification:
+  ClassificationData;
 
-  evidence: EvidenceData;
+  allegation:
+  AllegationData;
 
-  previousReporting: PreviousReportingData;
+  personsInvolved:
+  PersonInvolvedData;
 
-  declaration: DeclarationData;
+  // Step 5 - Entities Involved
+  entitiesInvolved:
+  EntitiesInvolvedData;
+
+  witnesses:
+  WitnessData;
+
+  evidence:
+  EvidenceData;
+
+  previousReporting:
+  PreviousReportingData;
+
+  declaration:
+  DeclarationData;
 }

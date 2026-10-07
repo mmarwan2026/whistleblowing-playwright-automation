@@ -35,11 +35,6 @@ test(
 
     // 6. Select Category
     await submit.classification.selectCategory(
-      'Conflict of Interest'
-    );
-
-    // 7. Select Subcategory
-    await submit.classification.selectSubcategory(
       'Nepotism/Cronyism'
     );
 
@@ -54,7 +49,7 @@ test(
       })
     ).toBeVisible();
   }
-);test(
+); test(
   'TC-008 | Classification mandatory fields validation @regression @validation @public @intake',
   async ({ page }) => {
 
@@ -103,7 +98,7 @@ test(
       })
     ).toBeVisible();
   }
-);test(
+); test(
   'TC-009 | Conflict of Interest loads correct Subcategory options @regression @public @intake',
   async ({ page }) => {
 
@@ -157,7 +152,7 @@ test(
       })
     ).toBeAttached();
   }
-);test(
+); test(
   'TC-010 | Internal Audit Yes can be selected on Classification @regression @public @intake',
   async ({ page }) => {
 
@@ -225,7 +220,7 @@ test(
       })
     ).toBeVisible();
   }
-);test(
+); test(
   'TC-011 | Back from Classification returns to Reporter Info and preserves data @regression @navigation @public @intake',
   async ({ page }) => {
 
@@ -272,7 +267,7 @@ test(
       })
     ).toHaveValue('Employee');
   }
-);test(
+); test(
   'TC-012 | Changing Category resets previous Subcategory @regression @validation @public @intake',
   async ({ page }) => {
 
@@ -303,7 +298,7 @@ test(
     );
 
     // Select Subcategory belonging to first Category
-    await submit.classification.selectSubcategory(
+    await submit.classification.selectCategory(
       'Nepotism/Cronyism'
     );
 
@@ -359,7 +354,7 @@ test(
       })
     ).toBeAttached();
   }
-);test(
+); test(
   'TC-013 | Subcategory is mandatory after selecting Category @regression @validation @public @intake',
   async ({ page }) => {
 
@@ -415,6 +410,154 @@ test(
     );
 
     // Must remain on Classification
+    await expect(
+      page.getByRole('heading', {
+        name: 'Classification',
+        level: 2
+      })
+    ).toBeVisible();
+  }
+);
+test(
+  'TC-014 | Classification mandatory fields discovery @regression @validation @diagnostic',
+  async ({ page }) => {
+
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await submit.open();
+
+    await notice.verifyLoaded();
+    await notice.next();
+
+    await submit.reporterInfo.verifyLoaded();
+
+    await submit.reporterInfo.fill({
+      identityType: 'anonymous',
+      reporterCategory: 'Employee'
+    });
+
+    await submit.reporterInfo.next();
+
+    await submit.classification.verifyLoaded();
+
+    // Leave all Classification fields empty
+    await submit.classification.next();
+
+    await expect(
+      page.getByRole('alert').filter({
+        hasText: 'Please complete all mandatory fields'
+      })
+    ).toBeVisible();
+
+    const invalidFields = page.locator(
+      '[aria-invalid="true"]'
+    );
+
+    const count = await invalidFields.count();
+
+    console.log(
+      `\nClassification mandatory field candidates: ${count}`
+    );
+
+    for (let index = 0; index < count; index++) {
+      const field = invalidFields.nth(index);
+
+      console.log({
+        index: index + 1,
+        name: await field.getAttribute('name'),
+        id: await field.getAttribute('id'),
+        type: await field.getAttribute('type'),
+        ariaLabel: await field.getAttribute('aria-label')
+      });
+    }
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Classification',
+        level: 2
+      })
+    ).toBeVisible();
+  }
+);
+test(
+  'TC-015 | Internal Audit answer is mandatory @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await submit.open();
+
+    await notice.verifyLoaded();
+    await notice.next();
+
+    await submit.reporterInfo.fill({
+      identityType: 'anonymous',
+      reporterCategory: 'Employee'
+    });
+
+    await submit.reporterInfo.next();
+    await submit.classification.verifyLoaded();
+
+    // Fill everything except Internal Audit
+    await submit.classification.selectCategory(
+      'Nepotism/Cronyism'
+    );
+    // Internal Audit intentionally NOT selected
+    await submit.classification.next();
+
+    // Validation must prevent navigation
+    await expect(
+      page.getByRole('alert').filter({
+        hasText: 'Please complete all mandatory fields'
+      })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Classification',
+        level: 2
+      })
+    ).toBeVisible();
+  }
+);
+test(
+  'TC-016 | Category is mandatory @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit = new SubmitReportPage(page);
+    const notice = new ReportingNoticePage(page);
+
+    await submit.open();
+
+    await notice.verifyLoaded();
+    await notice.next();
+
+    await submit.reporterInfo.fill({
+      identityType: 'anonymous',
+      reporterCategory: 'Employee'
+    });
+
+    await submit.reporterInfo.next();
+    await submit.classification.verifyLoaded();
+
+    // Fill Internal Audit only
+    await submit.classification.selectInternalAuditAnswer('No');
+
+    // Category intentionally NOT selected
+    // Subcategory cannot be selected without Category
+
+    await submit.classification.next();
+
+    // Validation must prevent navigation
+    await expect(
+      page.getByRole('alert').filter({
+        hasText: 'Please complete all mandatory fields'
+      })
+    ).toBeVisible();
+
+    // User must remain on Classification
     await expect(
       page.getByRole('heading', {
         name: 'Classification',

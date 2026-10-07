@@ -1,20 +1,93 @@
-import { Page, expect } from '@playwright/test';
-import { FollowUpMessage } from '../../../models/public/FollowUpMessage';
+import {
+  expect,
+  Page
+} from '@playwright/test';
+
+import {
+  FollowUpMessage
+} from '../../../models/public/FollowUpMessage';
 
 export class FollowUpCommunicationPage {
-  constructor(private readonly page: Page) {}
 
-  async sendMessage(message: FollowUpMessage) {
-    await this.page.getByRole('textbox').last().fill(message.text);
+  constructor(
+    private readonly page: Page
+  ) { }
+
+  // ==========================================================
+  // SEND MESSAGE
+  // ==========================================================
+
+  async sendMessage(
+    message: FollowUpMessage
+  ): Promise<void> {
+
+    const messageInput =
+      this.page
+        .getByRole('textbox')
+        .last();
+
+    await expect(
+      messageInput
+    ).toBeVisible();
+
+    await messageInput.fill(
+      message.text
+    );
+
+    // --------------------------------------------------------
+    // OPTIONAL ATTACHMENT
+    // --------------------------------------------------------
 
     if (message.attachmentPath) {
-      await this.page.locator('input[type="file"]').setInputFiles(message.attachmentPath);
+
+      const fileInput =
+        this.page.locator(
+          'input[type="file"]'
+        );
+
+      await fileInput.setInputFiles(
+        message.attachmentPath
+      );
     }
 
-    await this.page.getByRole('button', { name: /send/i }).click();
+    // --------------------------------------------------------
+    // SEND
+    // --------------------------------------------------------
+
+    const sendButton =
+      this.page.getByRole(
+        'button',
+        {
+          name: /send/i
+        }
+      );
+
+    await expect(
+      sendButton
+    ).toBeVisible();
+
+    await expect(
+      sendButton
+    ).toBeEnabled();
+
+    await sendButton.click();
   }
 
-  async expectMessage(text: string) {
-    await expect(this.page.getByText(text, { exact: false })).toBeVisible();
+  // ==========================================================
+  // VERIFY MESSAGE
+  // ==========================================================
+
+  async expectMessage(
+    text: string
+  ): Promise<void> {
+
+    await expect(
+      this.page.getByText(
+        text,
+        {
+          exact: false
+        }
+      )
+    ).toBeVisible();
   }
 }

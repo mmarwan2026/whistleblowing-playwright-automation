@@ -1,47 +1,45 @@
-import { expect, Page } from '@playwright/test';
+import {
+  expect,
+  Page
+} from '@playwright/test';
 
 export class FollowUpCasePage {
 
   constructor(
     private readonly page: Page
-  ) {}
+  ) { }
 
   // ==========================================================
   // VERIFY CASE PAGE LOADED
   // ==========================================================
 
- async expectLoaded() {
+  async expectLoaded(): Promise<void> {
 
-  await expect(
-    this.page.getByRole('heading', {
-      name: 'Your case',
-      level: 1
-    })
-  ).toBeVisible();
+    await expect(
+      this.page.getByRole('heading', {
+        name: 'Your case',
+        level: 1
+      })
+    ).toBeVisible();
 
-  await expect(
-    this.page.getByText(
-      'Credentials accepted.',
-      {
-        exact: false
-      }
-    )
-  ).toBeVisible();
+    await expect(
+      this.page.getByText(
+        'Credentials accepted.',
+        {
+          exact: false
+        }
+      )
+    ).toBeVisible();
 
-  await expect(
-    this.page.getByRole('button', {
-      name: 'Check another case',
-      exact: true
-    })
-  ).toBeVisible();
+    await expect(
+      this.page.getByRole('button', {
+        name: 'Check another case',
+        exact: true
+      })
+    ).toBeVisible();
 
-  await expect(
-    this.page.getByRole('heading', {
-      name: 'Secure Mailbox',
-      level: 2
-    })
-  ).toBeVisible();
-}
+    await this.expectSecureMailboxVisible();
+  }
 
   // ==========================================================
   // VERIFY REFERENCE NUMBER
@@ -49,7 +47,7 @@ export class FollowUpCasePage {
 
   async expectReferenceNumber(
     referenceNumber: string
-  ) {
+  ): Promise<void> {
 
     await expect(
       this.page.getByText(
@@ -67,7 +65,7 @@ export class FollowUpCasePage {
 
   async expectStatus(
     status: string
-  ) {
+  ): Promise<void> {
 
     await expect(
       this.page.getByText(
@@ -83,11 +81,12 @@ export class FollowUpCasePage {
   // VERIFY SECURE MAILBOX
   // ==========================================================
 
-  async expectSecureMailboxVisible() {
+  async expectSecureMailboxVisible(): Promise<void> {
 
     await expect(
       this.page.getByRole('heading', {
-        name: 'Secure Mailbox'
+        name: 'Secure Mailbox',
+        level: 2
       })
     ).toBeVisible();
   }

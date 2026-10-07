@@ -1,6 +1,7 @@
 import {
   test,
-  expect
+  expect,
+  Page
 } from '@playwright/test';
 
 import {
@@ -11,55 +12,102 @@ import {
   ReportingNoticePage
 } from '../../../pages/public/ReportingNoticePage';
 
+import {
+  EntitiesInvolvedStep
+} from '../../../pages/public/submit-report/steps/EntitiesInvolvedStep';
+
+
+// ============================================================
+// WITNESSES TEST SUITE
+//
+// Current confirmed workflow:
+//
+// Reporting Notice
+// -> Reporter Info
+// -> Classification
+// -> Allegation
+// -> Person(s) Involved
+// -> Entities Involved
+// -> Witnesses
+// -> Previous Reporting
+// -> Evidence
+// -> Declaration
+// ============================================================
+
 
 // ============================================================
 // COMMON SETUP
-// Navigate to Witnesses Step
+// Navigate to Witnesses
 // ============================================================
 
 async function navigateToWitnesses(
   submit: SubmitReportPage,
-  notice: ReportingNoticePage
-) {
+  notice: ReportingNoticePage,
+  page: Page
+): Promise<void> {
+
+  const entities =
+    new EntitiesInvolvedStep(page);
+
+
+  // ==========================================================
+  // REPORTING NOTICE
+  // ==========================================================
+
   await submit.open();
 
-  // Reporting Notice
   await notice.verifyLoaded();
 
   await notice.next();
 
-  // Reporter Info
-  await submit.reporterInfo.verifyLoaded();
+
+  // ==========================================================
+  // REPORTER INFO
+  // ==========================================================
+
+  await submit.reporterInfo
+    .verifyLoaded();
 
   await submit.reporterInfo.fill({
-    identityType: 'anonymous',
-    reporterCategory: 'Employee'
+    identityType:
+      'anonymous',
+
+    reporterCategory:
+      'Employee'
   });
 
   await submit.reporterInfo.next();
 
-  // Classification
-  await submit.classification.verifyLoaded();
+
+  // ==========================================================
+  // CLASSIFICATION
+  // ==========================================================
 
   await submit.classification
-    .selectInternalAuditAnswer('No');
+    .verifyLoaded();
 
   await submit.classification
-    .selectCategory(
-      'Conflict of Interest'
+    .selectInternalAuditAnswer(
+      'No'
     );
 
   await submit.classification
-    .selectSubcategory(
+    .selectCategory(
       'Nepotism/Cronyism'
     );
 
   await submit.classification.next();
 
-  // Allegation
-  await submit.allegation.verifyLoaded();
+
+  // ==========================================================
+  // ALLEGATION
+  // ==========================================================
+
+  await submit.allegation
+    .verifyLoaded();
 
   await submit.allegation.fill({
+
     incidentTitle:
       'Potential conflict of interest',
 
@@ -70,10 +118,10 @@ async function navigateToWitnesses(
       'I became aware through internal business communication.',
 
     knowsExactDate:
-      'No',
+      'Yes',
 
-    incidentDateDescription:
-      'The incident occurred approximately during September 2026.',
+    incidentDate:
+      '2026-09-13',
 
     ongoing:
       'No'
@@ -81,27 +129,75 @@ async function navigateToWitnesses(
 
   await submit.allegation.next();
 
-  // Person(s) Involved
+
+  // ==========================================================
+  // PERSON(S) INVOLVED
+  // ==========================================================
+
   await submit.personsInvolved
     .verifyLoaded();
 
   await submit.personsInvolved
-    .selectCanIdentify('No');
+    .selectCanIdentify(
+      'No'
+    );
 
   await submit.personsInvolved.next();
 
-  // Witnesses
-  await submit.witnesses.verifyLoaded();
+
+  // ==========================================================
+  // ENTITIES INVOLVED
+  // ==========================================================
+
+  await entities.verifyLoaded();
+
+  await entities
+    .selectCanIdentify(
+      'No'
+    );
+
+  await entities.next();
+
+
+  // ==========================================================
+  // WITNESSES
+  // ==========================================================
+
+  await submit.witnesses
+    .verifyLoaded();
 }
 
 
 // ============================================================
-// TC-027
+// COMMON ASSERTION
+// Witnesses -> Previous Reporting
+// ============================================================
+
+async function verifyPreviousReporting(
+  page: Page
+): Promise<void> {
+
+  await expect(
+    page.getByRole(
+      'heading',
+      {
+        name:
+          'Previous Reporting',
+
+        level: 2
+      }
+    )
+  ).toBeVisible();
+}
+
+
+// ============================================================
+// TC-043
 // Witnesses = No
 // ============================================================
 
 test(
-  'TC-027 | User can select No for witnesses and continue to Evidence @smoke @public @intake',
+  'TC-043 | User can select No for witnesses and continue to Previous Reporting @smoke @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -110,77 +206,45 @@ test(
     const notice =
       new ReportingNoticePage(page);
 
-    await navigateToWitnesses(
-      submit,
-      notice
-    );
-
-    await submit.witnesses
-      .selectWitnessAnswer('No');
-
-    await submit.witnesses.next();
-
-    await expect(
-      page.getByRole(
-        'heading',
-        {
-          name: 'Evidence',
-          level: 2
-        }
-      )
-    ).toBeVisible();
-  }
-);
-
-
-// ============================================================
-// TC-028
-// Witnesses = I don't know
-// ============================================================
-
-test(
-  "TC-028 | User can select I don't know for witnesses and continue to Evidence @public @intake",
-  async ({ page }) => {
-
-    const submit =
-      new SubmitReportPage(page);
-
-    const notice =
-      new ReportingNoticePage(page);
 
     await navigateToWitnesses(
       submit,
-      notice
+      notice,
+      page
     );
+
 
     await submit.witnesses
       .selectWitnessAnswer(
-        "I don't know"
+        'No'
       );
+
 
     await submit.witnesses.next();
 
-    await expect(
-      page.getByRole(
-        'heading',
-        {
-          name: 'Evidence',
-          level: 2
-        }
-      )
-    ).toBeVisible();
+
+    await verifyPreviousReporting(
+      page
+    );
   }
 );
 
 
 // ============================================================
-// TC-029
-// Witnesses = Yes
-// One Witness
+// TC-045
+// Add One Witness
+//
+// Includes all current Witness fields:
+// First Name
+// Last Name
+// Position
+// Department
+// Company
+// Notes
 // ============================================================
 
 test(
-  'TC-029 | User can add one witness and continue to Evidence @public @intake',
+  'TC-045 | User can add one witness and continue to Previous Reporting @smoke @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -189,19 +253,26 @@ test(
     const notice =
       new ReportingNoticePage(page);
 
+
     await navigateToWitnesses(
       submit,
-      notice
+      notice,
+      page
     );
 
+
     await submit.witnesses.fill({
-      hasWitnesses: 'Yes',
+
+      hasWitnesses:
+        'Yes',
 
       witnesses: [
         {
-          firstName: 'Ahmed',
+          firstName:
+            'Ahmed',
 
-          lastName: 'Hassan',
+          lastName:
+            'Hassan',
 
           position:
             'Senior Specialist',
@@ -209,209 +280,956 @@ test(
           department:
             'Procurement',
 
+          company:
+            'Red Sea Global',
+
           notes:
             'Witnessed the discussion related to the incident.'
         }
       ]
     });
 
+
+    expect(
+      await submit.witnesses
+        .getWitnessCount()
+    ).toBe(1);
+
+
+    await submit.witnesses
+      .verifyWitness(
+        0,
+        {
+          firstName:
+            'Ahmed',
+
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the discussion related to the incident.'
+        }
+      );
+
+
     await submit.witnesses.next();
+
+
+    await verifyPreviousReporting(
+      page
+    );
+  }
+);
+
+// ============================================================
+// TC-046
+// Add Multiple Witnesses
+// ============================================================
+
+test(
+  'TC-046 | User can add multiple witnesses @regression @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await navigateToWitnesses(
+      submit,
+      notice,
+      page
+    );
+
+    await submit.witnesses.fill({
+      hasWitnesses: 'Yes',
+
+      witnesses: [
+        {
+          firstName: 'Ahmed',
+          lastName: 'Hassan',
+          position: 'Senior Specialist',
+          department: 'Procurement',
+          company: 'Red Sea Global',
+          notes: 'Witnessed the initial discussion.'
+        },
+        {
+          firstName: 'Mohamed',
+          lastName: 'Ali',
+          position: 'Finance Manager',
+          department: 'Finance',
+          company: 'QA Test Company',
+          notes: 'Witnessed the approval discussion.'
+        }
+      ]
+    });
+
+    expect(
+      await submit.witnesses.getWitnessCount()
+    ).toBe(2);
+
+    await submit.witnesses.verifyWitness(
+      0,
+      {
+        firstName: 'Ahmed',
+        lastName: 'Hassan',
+        position: 'Senior Specialist',
+        department: 'Procurement',
+        company: 'Red Sea Global',
+        notes: 'Witnessed the initial discussion.'
+      }
+    );
+
+    await submit.witnesses.verifyWitness(
+      1,
+      {
+        firstName: 'Mohamed',
+        lastName: 'Ali',
+        position: 'Finance Manager',
+        department: 'Finance',
+        company: 'QA Test Company',
+        notes: 'Witnessed the approval discussion.'
+      }
+    );
+
+    await submit.witnesses.next();
+
+    await verifyPreviousReporting(
+      page
+    );
+  }
+);
+
+// ============================================================
+// TC-047
+// Remove Witness
+// ============================================================
+
+test(
+  'TC-047 | User can remove a witness @regression @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+
+    await navigateToWitnesses(
+      submit,
+      notice,
+      page
+    );
+
+
+    // ========================================================
+    // ADD TWO WITNESSES
+    // ========================================================
+
+    await submit.witnesses.fill({
+
+      hasWitnesses:
+        'Yes',
+
+      witnesses: [
+
+        {
+          firstName:
+            'Ahmed',
+
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the initial discussion.'
+        },
+
+        {
+          firstName:
+            'Mohamed',
+
+          lastName:
+            'Ali',
+
+          position:
+            'Finance Manager',
+
+          department:
+            'Finance',
+
+          company:
+            'QA Test Company',
+
+          notes:
+            'Witnessed the approval discussion.'
+        }
+      ]
+    });
+
+
+    expect(
+      await submit.witnesses
+        .getWitnessCount()
+    ).toBe(2);
+
+
+    // ========================================================
+    // REMOVE SECOND WITNESS
+    // ========================================================
+
+    await submit.witnesses
+      .removeWitness(1);
+
+
+    expect(
+      await submit.witnesses
+        .getWitnessCount()
+    ).toBe(1);
+
+
+    // ========================================================
+    // FIRST WITNESS MUST REMAIN UNCHANGED
+    // ========================================================
+
+    await submit.witnesses
+      .verifyWitness(
+        0,
+        {
+          firstName:
+            'Ahmed',
+
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the initial discussion.'
+        }
+      );
+
+
+    await submit.witnesses.next();
+
+
+    await verifyPreviousReporting(
+      page
+    );
+  }
+);
+
+
+// ============================================================
+// TC-048
+// Empty Witness Row Validation
+// ============================================================
+
+test(
+  'TC-048 | Empty witness details prevent navigation when Yes is selected @regression @validation @negative @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+
+    await navigateToWitnesses(
+      submit,
+      notice,
+      page
+    );
+
+
+    await submit.witnesses
+      .selectWitnessAnswer(
+        'Yes'
+      );
+
+
+    expect(
+      await submit.witnesses
+        .getWitnessCount()
+    ).toBe(1);
+
+
+    // Do not enter any Witness data.
+    await submit.witnesses.next();
+
+
+    // Expected current application behavior:
+    // user remains on Witnesses.
+    await expect(
+      page.getByRole(
+        'heading',
+        {
+          name:
+            'Witnesses',
+
+          level: 2
+        }
+      )
+    ).toBeVisible();
+
 
     await expect(
       page.getByRole(
         'heading',
         {
-          name: 'Evidence',
+          name:
+            'Previous Reporting',
+
           level: 2
         }
       )
-    ).toBeVisible();
+    ).toBeHidden();
   }
-);test(
-  'TC-030 | User can add multiple witnesses @public @intake',
+);
+
+
+// ============================================================
+// TC-049
+// Back Navigation + Data Persistence
+//
+// Witnesses
+// -> Entities Involved
+// -> Witnesses
+// ============================================================
+
+test(
+  'TC-049 | Witness data persists after Back navigation @regression @navigation @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    const entities =
+      new EntitiesInvolvedStep(page);
+
 
     await navigateToWitnesses(
       submit,
-      notice
+      notice,
+      page
     );
 
+
+    // ========================================================
+    // ENTER DATA
+    // ========================================================
+
     await submit.witnesses.fill({
-      hasWitnesses: 'Yes',
+
+      hasWitnesses:
+        'Yes',
 
       witnesses: [
         {
-          firstName: 'Ahmed',
-          lastName: 'Hassan',
-          position: 'Senior Specialist',
-          department: 'Procurement',
-          notes: 'Witnessed the initial discussion.'
-        },
-        {
-          firstName: 'Mohamed',
-          lastName: 'Ali',
-          position: 'Finance Manager',
-          department: 'Finance',
-          notes: 'Witnessed the approval discussion.'
+          firstName:
+            'Ahmed',
+
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the incident discussion.'
         }
       ]
     });
 
+
     expect(
-      await submit.witnesses.getWitnessCount()
-    ).toBe(2);
-
-    await submit.witnesses.next();
-
-    await expect(
-      page.getByRole('heading', {
-        name: 'Evidence',
-        level: 2
-      })
-    ).toBeVisible();
-  }
-);test(
-  'TC-031 | User can remove a witness @public @intake',
-  async ({ page }) => {
-
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToWitnesses(
-      submit,
-      notice
-    );
-
-    // Add two witnesses
-    await submit.witnesses.fill({
-      hasWitnesses: 'Yes',
-
-      witnesses: [
-        {
-          firstName: 'Ahmed',
-          lastName: 'Hassan',
-          position: 'Senior Specialist',
-          department: 'Procurement',
-          notes: 'Witnessed the initial discussion.'
-        },
-        {
-          firstName: 'Mohamed',
-          lastName: 'Ali',
-          position: 'Finance Manager',
-          department: 'Finance',
-          notes: 'Witnessed the approval discussion.'
-        }
-      ]
-    });
-
-    // Verify two witnesses
-    expect(
-      await submit.witnesses.getWitnessCount()
-    ).toBe(2);
-
-    // Remove second witness
-    await submit.witnesses.removeWitness(1);
-
-    // Verify only one remains
-    expect(
-      await submit.witnesses.getWitnessCount()
+      await submit.witnesses
+        .getWitnessCount()
     ).toBe(1);
 
-    // Continue
-    await submit.witnesses.next();
 
-    await expect(
-      page.getByRole('heading', {
-        name: 'Evidence',
-        level: 2
-      })
-    ).toBeVisible();
-  }
-);test(
-  'TC-032 | Witness details validation when Yes is selected @negative @public @intake',
-  async ({ page }) => {
-
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToWitnesses(
-      submit,
-      notice
-    );
-
-    // Select Yes
     await submit.witnesses
-      .selectWitnessAnswer('Yes');
-
-    // Do not enter witness information
-    await submit.witnesses.next();
-
-    // User should remain on Witnesses
-    await expect(
-      page.getByRole('heading', {
-        name: 'Witnesses',
-        level: 2
-      })
-    ).toBeVisible();
-  }
-);test(
-  'TC-033 | Witness data persists after Back navigation @public @intake',
-  async ({ page }) => {
-
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
-
-    await navigateToWitnesses(submit, notice);
-
-    await submit.witnesses.fill({
-      hasWitnesses: 'Yes',
-      witnesses: [
+      .verifyWitness(
+        0,
         {
-          firstName: 'Ahmed',
-          lastName: 'Hassan',
-          position: 'Senior Specialist',
-          department: 'Procurement',
-          notes: 'Witnessed the incident discussion.'
-        }
-      ]
-    });
+          firstName:
+            'Ahmed',
 
-    // Back → Person(s) Involved
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the incident discussion.'
+        }
+      );
+
+
+    // ========================================================
+    // BACK -> ENTITIES INVOLVED
+    // ========================================================
+
     await submit.witnesses.back();
 
-    await submit.personsInvolved.verifyLoaded();
 
-    // Return → Witnesses
-    await submit.personsInvolved.next();
+    await entities.verifyLoaded();
 
-    await submit.witnesses.verifyLoaded();
 
-    // Yes should remain selected
     await expect(
-      page.getByRole('radio', {
-        name: 'Yes',
-        exact: true
-      })
+      page.getByRole(
+        'radio',
+        {
+          name:
+            'No',
+
+          exact: true
+        }
+      )
     ).toBeChecked();
 
-    // Witness should still exist
+
+    // ========================================================
+    // NEXT -> WITNESSES
+    // ========================================================
+
+    await entities.next();
+
+
+    await submit.witnesses
+      .verifyLoaded();
+
+
+    // ========================================================
+    // YES MUST PERSIST
+    // ========================================================
+
+    await expect(
+      page.getByRole(
+        'radio',
+        {
+          name:
+            'Yes',
+
+          exact: true
+        }
+      )
+    ).toBeChecked();
+
+
+    // ========================================================
+    // ROW MUST PERSIST
+    // ========================================================
+
     expect(
-      await submit.witnesses.getWitnessCount()
+      await submit.witnesses
+        .getWitnessCount()
     ).toBe(1);
 
-    const table = page.getByRole('table');
-    const witnessRow = table.getByRole('row').nth(1);
-    const fields = witnessRow.getByRole('textbox');
 
-    await expect(fields.nth(0)).toHaveValue('Ahmed');
-    await expect(fields.nth(1)).toHaveValue('Hassan');
-    await expect(fields.nth(2)).toHaveValue('Senior Specialist');
-    await expect(fields.nth(3)).toHaveValue('Procurement');
-    await expect(fields.nth(4)).toHaveValue(
-      'Witnessed the incident discussion.'
+    // ========================================================
+    // ALL VALUES MUST PERSIST
+    // ========================================================
+
+    await submit.witnesses
+      .verifyWitness(
+        0,
+        {
+          firstName:
+            'Ahmed',
+
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the incident discussion.'
+        }
+      );
+  }
+);
+
+
+// ============================================================
+// TC-050
+// First Name Optional
+//
+// Previously discovered behavior:
+// First Name can be empty when other Witness data exists.
+// ============================================================
+
+test(
+  'TC-050 | Witness First Name is optional @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+
+    await navigateToWitnesses(
+      submit,
+      notice,
+      page
+    );
+
+
+    await submit.witnesses.fill({
+
+      hasWitnesses:
+        'Yes',
+
+      witnesses: [
+        {
+          firstName:
+            '',
+
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the incident discussion.'
+        }
+      ]
+    });
+
+
+    await submit.witnesses.next();
+
+
+    await verifyPreviousReporting(
+      page
+    );
+  }
+);
+
+
+// ============================================================
+// TC-051
+// Last Name Optional
+// ============================================================
+
+test(
+  'TC-051 | Witness Last Name is optional @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+
+    await navigateToWitnesses(
+      submit,
+      notice,
+      page
+    );
+
+
+    await submit.witnesses.fill({
+
+      hasWitnesses:
+        'Yes',
+
+      witnesses: [
+        {
+          firstName:
+            'Ahmed',
+
+          lastName:
+            '',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the incident discussion.'
+        }
+      ]
+    });
+
+
+    await submit.witnesses.next();
+
+
+    await verifyPreviousReporting(
+      page
+    );
+  }
+);
+
+
+// ============================================================
+// TC-052
+// Position Optional
+// ============================================================
+
+test(
+  'TC-052 | Witness Position is optional @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+
+    await navigateToWitnesses(
+      submit,
+      notice,
+      page
+    );
+
+
+    await submit.witnesses.fill({
+
+      hasWitnesses:
+        'Yes',
+
+      witnesses: [
+        {
+          firstName:
+            'Ahmed',
+
+          lastName:
+            'Hassan',
+
+          position:
+            '',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the incident discussion.'
+        }
+      ]
+    });
+
+
+    await submit.witnesses.next();
+
+
+    await verifyPreviousReporting(
+      page
+    );
+  }
+);
+
+
+// ============================================================
+// TC-053
+// Department Optional
+// ============================================================
+
+test(
+  'TC-053 | Witness Department is optional @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+
+    await navigateToWitnesses(
+      submit,
+      notice,
+      page
+    );
+
+
+    await submit.witnesses.fill({
+
+      hasWitnesses:
+        'Yes',
+
+      witnesses: [
+        {
+          firstName:
+            'Ahmed',
+
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            '',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            'Witnessed the incident discussion.'
+        }
+      ]
+    });
+
+
+    await submit.witnesses.next();
+
+
+    await verifyPreviousReporting(
+      page
+    );
+  }
+);
+
+
+// ============================================================
+// TC-054
+// Company Validation Discovery
+//
+// Company is a newly discovered current UI field.
+//
+// We do NOT assume Mandatory or Optional.
+// This test discovers the current application behavior.
+// ============================================================
+
+test(
+  'TC-054 | Company validation when witness is identified @diagnostic @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+
+    await navigateToWitnesses(
+      submit,
+      notice,
+      page
+    );
+
+
+    await submit.witnesses.fill({
+
+      hasWitnesses:
+        'Yes',
+
+      witnesses: [
+        {
+          firstName:
+            'Ahmed',
+
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            '',
+
+          notes:
+            'Witnessed the incident discussion.'
+        }
+      ]
+    });
+
+
+    await submit.witnesses.next();
+
+
+    const witnessesHeading =
+      page.getByRole(
+        'heading',
+        {
+          name:
+            'Witnesses',
+
+          level: 2
+        }
+      );
+
+
+    const previousReportingHeading =
+      page.getByRole(
+        'heading',
+        {
+          name:
+            'Previous Reporting',
+
+          level: 2
+        }
+      );
+
+
+    if (
+      await witnessesHeading
+        .isVisible()
+    ) {
+
+      console.log(
+        'RESULT: Witness Company is Mandatory'
+      );
+
+    } else if (
+      await previousReportingHeading
+        .isVisible()
+    ) {
+
+      console.log(
+        'RESULT: Witness Company is Optional'
+      );
+    }
+
+
+    expect(
+      (
+        await witnessesHeading
+          .isVisible()
+      ) ||
+      (
+        await previousReportingHeading
+          .isVisible()
+      )
+    ).toBeTruthy();
+  }
+);
+
+
+// ============================================================
+// TC-055
+// Notes Optional
+//
+// Previously discovered behavior:
+// Notes can be empty.
+// ============================================================
+
+test(
+  'TC-055 | Witness Notes is optional @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+
+    await navigateToWitnesses(
+      submit,
+      notice,
+      page
+    );
+
+
+    await submit.witnesses.fill({
+
+      hasWitnesses:
+        'Yes',
+
+      witnesses: [
+        {
+          firstName:
+            'Ahmed',
+
+          lastName:
+            'Hassan',
+
+          position:
+            'Senior Specialist',
+
+          department:
+            'Procurement',
+
+          company:
+            'Red Sea Global',
+
+          notes:
+            ''
+        }
+      ]
+    });
+
+
+    await submit.witnesses.next();
+
+
+    await verifyPreviousReporting(
+      page
     );
   }
 );

@@ -1,7 +1,5 @@
 import {
-  expect,
-  Page,
-  Response
+  Page
 } from '@playwright/test';
 
 import {
@@ -20,6 +18,15 @@ import {
   ReportingNoticePage
 } from '../../pages/public/ReportingNoticePage';
 
+import {
+  submitAndValidate
+} from '../../helpers/public/submitReportAssertions';
+
+import {
+  EntitiesInvolvedStep
+} from '../../pages/public/submit-report/steps/EntitiesInvolvedStep';
+
+
 export class AnonymousReportFlow {
 
   private readonly submitPage:
@@ -27,6 +34,10 @@ export class AnonymousReportFlow {
 
   private readonly noticePage:
     ReportingNoticePage;
+
+  private readonly entitiesInvolvedStep:
+    EntitiesInvolvedStep;
+
 
   constructor(
     private readonly page: Page
@@ -37,7 +48,11 @@ export class AnonymousReportFlow {
 
     this.noticePage =
       new ReportingNoticePage(page);
+
+    this.entitiesInvolvedStep =
+      new EntitiesInvolvedStep(page);
   }
+
 
   // ==========================================================
   // SUBMIT ANONYMOUS REPORT
@@ -51,11 +66,15 @@ export class AnonymousReportFlow {
     // STEP 0 - REPORTING NOTICE
     // ========================================================
 
-    await this.submitPage.open();
+    await this.submitPage
+      .open();
 
-    await this.noticePage.verifyLoaded();
+    await this.noticePage
+      .verifyLoaded();
 
-    await this.noticePage.next();
+    await this.noticePage
+      .next();
+
 
     // ========================================================
     // STEP 1 - REPORTER INFO
@@ -67,11 +86,14 @@ export class AnonymousReportFlow {
 
     await this.submitPage
       .reporterInfo
-      .fill(report.reporter);
+      .fill(
+        report.reporter
+      );
 
     await this.submitPage
       .reporterInfo
       .next();
+
 
     // ========================================================
     // STEP 2 - CLASSIFICATION
@@ -83,11 +105,14 @@ export class AnonymousReportFlow {
 
     await this.submitPage
       .classification
-      .fill(report.classification);
+      .fill(
+        report.classification
+      );
 
     await this.submitPage
       .classification
       .next();
+
 
     // ========================================================
     // STEP 3 - ALLEGATION
@@ -99,11 +124,14 @@ export class AnonymousReportFlow {
 
     await this.submitPage
       .allegation
-      .fill(report.allegation);
+      .fill(
+        report.allegation
+      );
 
     await this.submitPage
       .allegation
       .next();
+
 
     // ========================================================
     // STEP 4 - PERSON(S) INVOLVED
@@ -115,14 +143,33 @@ export class AnonymousReportFlow {
 
     await this.submitPage
       .personsInvolved
-      .fill(report.personsInvolved);
+      .fill(
+        report.personsInvolved
+      );
 
     await this.submitPage
       .personsInvolved
       .next();
 
+
     // ========================================================
-    // STEP 5 - WITNESSES
+    // STEP 5 - ENTITIES INVOLVED
+    // ========================================================
+
+    await this.entitiesInvolvedStep
+      .verifyLoaded();
+
+    await this.entitiesInvolvedStep
+      .fill(
+        report.entitiesInvolved
+      );
+
+    await this.entitiesInvolvedStep
+      .next();
+
+
+    // ========================================================
+    // STEP 6 - WITNESSES
     // ========================================================
 
     await this.submitPage
@@ -131,27 +178,14 @@ export class AnonymousReportFlow {
 
     await this.submitPage
       .witnesses
-      .fill(report.witnesses);
+      .fill(
+        report.witnesses
+      );
 
     await this.submitPage
       .witnesses
       .next();
 
-    // ========================================================
-    // STEP 6 - EVIDENCE
-    // ========================================================
-
-    await this.submitPage
-      .evidence
-      .verifyLoaded();
-
-    await this.submitPage
-      .evidence
-      .fill(report.evidence);
-
-    await this.submitPage
-      .evidence
-      .next();
 
     // ========================================================
     // STEP 7 - PREVIOUS REPORTING
@@ -161,16 +195,38 @@ export class AnonymousReportFlow {
       .previousReporting
       .verifyLoaded();
 
-    await this.fillPreviousReporting(
-      report
-    );
+    await this.submitPage
+      .previousReporting
+      .fill(
+        report.previousReporting
+      );
 
     await this.submitPage
       .previousReporting
       .next();
 
+
     // ========================================================
-    // STEP 8 - DECLARATION
+    // STEP 8 - EVIDENCE
+    // ========================================================
+
+    await this.submitPage
+      .evidence
+      .verifyLoaded();
+
+    await this.submitPage
+      .evidence
+      .fill(
+        report.evidence
+      );
+
+    await this.submitPage
+      .evidence
+      .next();
+
+
+    // ========================================================
+    // STEP 9 - DECLARATION
     // ========================================================
 
     await this.submitPage
@@ -181,75 +237,42 @@ export class AnonymousReportFlow {
       report
     );
 
-    await this.submitPage
-      .declaration
-      .verifyBothAcknowledgementsChecked();
 
     // ========================================================
-    // WAIT FOR SUBMIT API
-    //
-    // Listener MUST be registered before Submit.
+    // STEP 10 - SUBMIT + VALIDATE
     // ========================================================
 
-    const responsePromise =
-      this.page.waitForResponse(
-        response =>
-          response.request().method() === 'POST' &&
-          response.url().includes(
-            '/portal/v1/registration/submit'
-          ),
-        {
-          timeout: 30000
-        }
+    const result =
+      await submitAndValidate(
+        this.page,
+        this.submitPage,
+        'E2E-004'
       );
 
-    // ========================================================
-    // SUBMIT
-    // ========================================================
-
-    await this.submitPage
-      .declaration
-      .submit();
-
-    const response =
-      await responsePromise;
 
     // ========================================================
-    // VALIDATE RESPONSE
+    // STEP 11 - ANONYMOUS ACCESS CREDENTIAL VALIDATION
     // ========================================================
-
-    await this.verifySuccessfulSubmission(
-      response
-    );
-
-    const responseBody =
-      await response.json();
 
     const referenceNumber =
-      responseBody.data.reference;
+      result.reference;
 
     const pin =
-      responseBody.data.pin;
+      result.pin;
 
-    expect(
-      referenceNumber,
-      'Anonymous report must return a reference number'
-    ).toBeTruthy();
+    if (!referenceNumber) {
+      throw new Error(
+        'Anonymous report submission succeeded but no reference number was returned.'
+      );
+    }
 
-    expect(
-      referenceNumber,
-      'Generated reference should follow RSG-YYYY-number format'
-    ).toMatch(
-      /^RSG-\d{4}-\d+$/
-    );
+    if (!pin) {
+      throw new Error(
+        'Anonymous report submission succeeded but no access PIN was returned.'
+      );
+    }
 
-    expect(
-      pin,
-      'Anonymous report must return an access PIN'
-    ).toBeTruthy();
-
-    // IMPORTANT:
-    // Never log the PIN or complete API response.
+    // Never log the PIN or complete submission response.
 
     return {
       referenceNumber,
@@ -257,29 +280,6 @@ export class AnonymousReportFlow {
     };
   }
 
-  // ==========================================================
-  // PREVIOUS REPORTING
-  // ==========================================================
-
-  private async fillPreviousReporting(
-    report: ReportData
-  ) {
-
-    const data =
-      report.previousReporting;
-
-    await this.submitPage
-      .previousReporting
-      .selectPreviouslyReported(
-        data.previouslyReported
-      );
-
-    // E2E-004 currently uses the minimum anonymous flow:
-    // previouslyReported = No.
-    //
-    // More complex previous-reporting branches remain covered
-    // by their dedicated tests and full-report E2E.
-  }
 
   // ==========================================================
   // DECLARATION
@@ -287,44 +287,25 @@ export class AnonymousReportFlow {
 
   private async fillDeclaration(
     report: ReportData
-  ) {
+  ): Promise<void> {
+
+    const {
+      accurateInformation,
+      confidentialityAcknowledged
+    } =
+      report.declaration;
 
     if (
-      report.declaration.accurateInformation &&
-      report.declaration.confidentialityAcknowledged
+      !accurateInformation ||
+      !confidentialityAcknowledged
     ) {
-
-      await this.submitPage
-        .declaration
-        .acceptAllAcknowledgements();
-
-      return;
+      throw new Error(
+        'AnonymousReportFlow requires both declaration acknowledgements to be accepted.'
+      );
     }
 
-    throw new Error(
-      'AnonymousReportFlow requires both declaration acknowledgements to be accepted.'
-    );
-  }
-
-  // ==========================================================
-  // SUBMIT RESPONSE VALIDATION
-  // ==========================================================
-
-  private async verifySuccessfulSubmission(
-    response: Response
-  ) {
-
-    const status =
-      response.status();
-
-    expect(
-      status,
-      `Expected anonymous report submission to succeed but received HTTP ${status}`
-    ).toBeGreaterThanOrEqual(200);
-
-    expect(
-      status,
-      `Expected anonymous report submission to succeed but received HTTP ${status}`
-    ).toBeLessThan(300);
+    await this.submitPage
+      .declaration
+      .acceptAllAcknowledgements();
   }
 }

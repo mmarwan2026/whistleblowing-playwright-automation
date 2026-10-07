@@ -1,90 +1,155 @@
-import { expect, Page } from '@playwright/test';
+import {
+  expect,
+  Locator,
+  Page
+} from '@playwright/test';
 
 import {
   EvidenceData
 } from '../../../../models/public/EvidenceData';
 
 export class EvidenceStep {
-  constructor(private readonly page: Page) {}
+
+  constructor(
+    private readonly page: Page
+  ) { }
 
   // =========================================================
   // VERIFY PAGE
   // =========================================================
 
- async verifyLoaded() {
-  await expect(
-    this.page.getByRole('heading', {
-      name: 'Evidence',
-      level: 2
-    })
-  ).toBeVisible();
+  async verifyLoaded(): Promise<void> {
 
-  await expect(
-    this.page.getByText(
-      /Do You Have Any Supporting Evidence\s*\?/i
-    )
-  ).toBeVisible();
+    await expect(
+      this.page.getByRole('heading', {
+        name: 'Evidence',
+        level: 2
+      })
+    ).toBeVisible();
 
-  await expect(
-    this.page.getByRole('radio', {
-      name: 'Yes',
-      exact: true
-    })
-  ).toBeVisible();
+    await expect(
+      this.page.getByText(
+        /Do You Have Any Supporting Evidence\s*\?/i
+      )
+    ).toBeVisible();
 
-  await expect(
-    this.page.getByRole('radio', {
-      name: 'No',
-      exact: true
-    })
-  ).toBeVisible();
-}
+    await expect(
+      this.page.getByRole('radio', {
+        name: 'Yes',
+        exact: true
+      })
+    ).toBeVisible();
+
+    await expect(
+      this.page.getByRole('radio', {
+        name: 'No',
+        exact: true
+      })
+    ).toBeVisible();
+  }
+
   // =========================================================
   // SELECT YES / NO
   // =========================================================
 
   async selectEvidenceAnswer(
     answer: EvidenceData['hasSupportingEvidence']
-  ) {
-    const radio =
-      this.page.getByRole('radio', {
-        name: answer,
-        exact: true
-      });
+  ): Promise<void> {
 
-    await expect(radio).toBeVisible();
+    const radio =
+      this.page.getByRole(
+        'radio',
+        {
+          name: answer,
+          exact: true
+        }
+      );
+
+    await expect(
+      radio
+    ).toBeVisible();
 
     await radio.check();
 
-    await expect(radio).toBeChecked();
+    await expect(
+      radio
+    ).toBeChecked();
   }
 
   // =========================================================
   // FILE INPUT
   // =========================================================
 
-  private getFileInput() {
+  private getFileInput(): Locator {
+
     return this.page.locator(
       'input[type="file"]'
     );
   }
 
   // =========================================================
+  // DISPLAYED FILE NAME
+  // =========================================================
+
+  private normalizeDisplayedFileName(
+    fileName: string
+  ): string {
+
+    /*
+      Current UI removes "-" characters
+      from the displayed filename.
+
+      Example:
+      test-file.pdf
+      ->
+      testfile.pdf
+    */
+
+    return fileName.replace(
+      /-/g,
+      ''
+    );
+  }
+
+  // =========================================================
+  // FILE ITEM
+  // =========================================================
+
+  private getFileItem(
+    fileName: string
+  ): Locator {
+
+    const displayedFileName =
+      this.normalizeDisplayedFileName(
+        fileName
+      );
+
+    return this.page
+      .getByRole('listitem')
+      .filter({
+        hasText: displayedFileName
+      });
+  }
+
+  // =========================================================
   // VERIFY UPLOAD SECTION
   // =========================================================
 
-  async verifyUploadSectionVisible() {
-  await expect(
-    this.page.getByText(
-      'File Upload Guidance:',
-      { exact: false }
-    )
-  ).toBeVisible();
+  async verifyUploadSectionVisible(): Promise<void> {
 
-  await expect(
-    this.getFileInput()
-  ).toHaveCount(1);
-}
+    await expect(
+      this.page.getByText(
+        'File Upload Guidance:',
+        {
+          exact: false
+        }
+      )
+    ).toBeVisible();
+
+    await expect(
+      this.getFileInput()
+    ).toHaveCount(1);
+  }
 
   // =========================================================
   // UPLOAD SINGLE FILE
@@ -92,7 +157,8 @@ export class EvidenceStep {
 
   async uploadFile(
     filePath: string
-  ) {
+  ): Promise<void> {
+
     const fileInput =
       this.getFileInput();
 
@@ -111,7 +177,8 @@ export class EvidenceStep {
 
   async uploadFiles(
     filePaths: string[]
-  ) {
+  ): Promise<void> {
+
     const fileInput =
       this.getFileInput();
 
@@ -125,51 +192,70 @@ export class EvidenceStep {
   }
 
   // =========================================================
-  // VERIFY FILE
+  // VERIFY FILE UPLOADED
   // =========================================================
-private normalizeDisplayedFileName(fileName: string): string {
-  return fileName.replace(/-/g, '');
-}
 
-async verifyFileUploaded(fileName: string) {
-  const displayedFileName =
-    this.normalizeDisplayedFileName(fileName);
+  async verifyFileUploaded(
+    fileName: string
+  ): Promise<void> {
 
-  const fileItem = this.page
-    .getByRole('listitem')
-    .filter({
-      hasText: displayedFileName
-    });
+    const displayedFileName =
+      this.normalizeDisplayedFileName(
+        fileName
+      );
 
-  await expect(fileItem).toBeVisible();
+    const fileItem =
+      this.getFileItem(
+        fileName
+      );
 
-  await expect(
-    fileItem.getByText(displayedFileName, {
-      exact: true
-    })
-  ).toBeVisible();
+    await expect(
+      fileItem
+    ).toBeVisible();
 
-  await expect(
-    fileItem.getByText(/Uploaded/i)
-  ).toBeVisible();
+    await expect(
+      fileItem.getByText(
+        displayedFileName,
+        {
+          exact: true
+        }
+      )
+    ).toBeVisible();
 
-  await expect(
-    fileItem.getByRole('button', {
-      name: `Remove: ${displayedFileName}`,
-      exact: true
-    })
-  ).toBeVisible();
-}
+    await expect(
+      fileItem.getByText(
+        /Uploaded/i
+      )
+    ).toBeVisible();
+
+    await expect(
+      fileItem.getByRole(
+        'button',
+        {
+          name:
+            `Remove: ${displayedFileName}`,
+          exact: true
+        }
+      )
+    ).toBeVisible();
+  }
+
   // =========================================================
   // VERIFY FILE NOT PRESENT
   // =========================================================
 
   async verifyFileNotPresent(
     fileName: string
-  ) {
+  ): Promise<void> {
+
+    const displayedFileName =
+      this.normalizeDisplayedFileName(
+        fileName
+      );
+
     await expect(
       this.page.getByText(
-        fileName,
+        displayedFileName,
         {
           exact: true
         }
@@ -182,50 +268,42 @@ async verifyFileUploaded(fileName: string) {
   // =========================================================
 
   async removeFile(
-    fileName?: string
-  ) {
-    if (fileName) {
-      const fileItem =
-        this.page
-          .getByText(
-            fileName,
-            {
-              exact: true
-            }
-          )
-          .locator('..');
+    fileName: string
+  ): Promise<void> {
 
-      const remove =
-        fileItem.getByText(
-          'Remove',
-          {
-            exact: true
-          }
-        );
+    const displayedFileName =
+      this.normalizeDisplayedFileName(
+        fileName
+      );
 
-      if (
-        await remove.isVisible()
-          .catch(() => false)
-      ) {
-        await remove.click();
+    const fileItem =
+      this.getFileItem(
+        fileName
+      );
 
-        return;
-      }
-    }
+    await expect(
+      fileItem
+    ).toBeVisible();
 
     const removeButton =
-      this.page.getByText(
-        'Remove',
+      fileItem.getByRole(
+        'button',
         {
+          name:
+            `Remove: ${displayedFileName}`,
           exact: true
         }
-      ).first();
+      );
 
     await expect(
       removeButton
     ).toBeVisible();
 
     await removeButton.click();
+
+    await expect(
+      fileItem
+    ).toBeHidden();
   }
 
   // =========================================================
@@ -234,10 +312,15 @@ async verifyFileUploaded(fileName: string) {
 
   async fill(
     data: EvidenceData
-  ) {
+  ): Promise<void> {
+
     await this.selectEvidenceAnswer(
       data.hasSupportingEvidence
     );
+
+    // -------------------------------------------------------
+    // NO -> no upload required
+    // -------------------------------------------------------
 
     if (
       data.hasSupportingEvidence === 'No'
@@ -245,7 +328,19 @@ async verifyFileUploaded(fileName: string) {
       return;
     }
 
+    // -------------------------------------------------------
+    // YES -> upload section should appear
+    // -------------------------------------------------------
+
     await this.verifyUploadSectionVisible();
+
+    /*
+      Do not throw if Yes is selected
+      without files.
+
+      Negative tests may intentionally
+      verify this application's validation.
+    */
 
     if (
       !data.filePaths ||
@@ -253,6 +348,10 @@ async verifyFileUploaded(fileName: string) {
     ) {
       return;
     }
+
+    // -------------------------------------------------------
+    // SINGLE FILE
+    // -------------------------------------------------------
 
     if (
       data.filePaths.length === 1
@@ -264,6 +363,10 @@ async verifyFileUploaded(fileName: string) {
       return;
     }
 
+    // -------------------------------------------------------
+    // MULTIPLE FILES
+    // -------------------------------------------------------
+
     await this.uploadFiles(
       data.filePaths
     );
@@ -273,49 +376,33 @@ async verifyFileUploaded(fileName: string) {
   // NEXT
   // =========================================================
 
-  async next() {
-    const nextButton =
-      this.page.getByRole(
+  async next(): Promise<void> {
+
+    await this.page
+      .getByRole(
         'button',
         {
           name: 'Next',
           exact: true
         }
-      );
-
-    await expect(
-      nextButton
-    ).toBeVisible();
-
-    await expect(
-      nextButton
-    ).toBeEnabled();
-
-    await nextButton.click();
+      )
+      .click();
   }
 
   // =========================================================
   // BACK
   // =========================================================
 
-  async back() {
-    const backButton =
-      this.page.getByRole(
+  async back(): Promise<void> {
+
+    await this.page
+      .getByRole(
         'button',
         {
           name: 'Back',
           exact: true
         }
-      );
-
-    await expect(
-      backButton
-    ).toBeVisible();
-
-    await expect(
-      backButton
-    ).toBeEnabled();
-
-    await backButton.click();
+      )
+      .click();
   }
-}
+} 

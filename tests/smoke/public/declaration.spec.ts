@@ -56,15 +56,9 @@ async function navigateToDeclaration(
   await submit.classification
     .selectInternalAuditAnswer('No');
 
-  await submit.classification
-    .selectCategory(
-      'Conflict of Interest'
-    );
-
-  await submit.classification
-    .selectSubcategory(
-      'Nepotism/Cronyism'
-    );
+  await submit.classification.selectCategory(
+    'Nepotism/Cronyism'
+  );
 
   await submit.classification.next();
 
@@ -154,7 +148,7 @@ async function navigateToDeclaration(
 
 // ============================================================
 // DECLARATION TEST SUITE
-// TC-054 -> TC-059
+// TC-092 -> TC-097
 // ============================================================
 
 test.describe(
@@ -162,12 +156,12 @@ test.describe(
   () => {
 
     // ========================================================
-    // TC-054
+    // TC-092
     // Verify Declaration page structure and initial state.
     // ========================================================
 
     test(
-      'TC-054 | Declaration step displays two required acknowledgements and report actions @smoke @public @intake',
+      'TC-092 | Declaration step displays two required acknowledgements and report actions @smoke @public @intake',
       async ({ page }) => {
         const submit =
           new SubmitReportPage(page);
@@ -244,13 +238,13 @@ test.describe(
     );
 
     // ========================================================
-    // TC-055
+    // TC-093
     // Neither declaration accepted.
     // Submission must be blocked.
     // ========================================================
 
     test(
-      'TC-055 | Report cannot be submitted without accepting both declarations @public @intake @validation',
+      'TC-093 | Report cannot be submitted without accepting both declarations @regression @validation @negative @public @intake',
       async ({ page }) => {
         const submit =
           new SubmitReportPage(page);
@@ -285,7 +279,7 @@ test.describe(
         // Attempt submission
         // ----------------------------------------------------
 
-        await submit.declaration.submit();
+        await submit.declaration.clickSubmit();
 
         // ----------------------------------------------------
         // User must remain on Declaration.
@@ -313,13 +307,13 @@ test.describe(
     );
 
     // ========================================================
-    // TC-056
+    // TC-094
     // First declaration only.
     // Submission must be blocked.
     // ========================================================
 
     test(
-      'TC-056 | Report cannot be submitted when only the first declaration is accepted @public @intake @validation',
+      'TC-094 | Report cannot be submitted when only the first declaration is accepted @regression @validation @negative @public @intake',
       async ({ page }) => {
         const submit =
           new SubmitReportPage(page);
@@ -362,7 +356,7 @@ test.describe(
         // Attempt submission
         // ----------------------------------------------------
 
-        await submit.declaration.submit();
+        await submit.declaration.clickSubmit();
 
         // ----------------------------------------------------
         // Submission must remain blocked.
@@ -386,19 +380,24 @@ test.describe(
     );
 
     // ========================================================
-    // TC-057
+    // TC-095
     // Second declaration only.
     // Submission must be blocked.
     // ========================================================
 
     test(
-      'TC-057 | Report cannot be submitted when only the second declaration is accepted @public @intake @validation',
+      'TC-095 | Report cannot be submitted when only the second declaration is accepted @regression @validation @negative @public @intake',
       async ({ page }) => {
+
         const submit =
           new SubmitReportPage(page);
 
         const notice =
           new ReportingNoticePage(page);
+
+        // ----------------------------------------------------
+        // Navigate to Declaration
+        // ----------------------------------------------------
 
         await navigateToDeclaration(
           submit,
@@ -416,20 +415,19 @@ test.describe(
         ).toHaveCount(2);
 
         // ----------------------------------------------------
-        // First remains unchecked.
+        // Accept second acknowledgement only
         // ----------------------------------------------------
 
+        await submit.declaration
+          .uncheckFirstAcknowledgement();
+
+        await submit.declaration
+          .acceptSecondAcknowledgement();
+
+        // Verify intended state BEFORE submission.
         await expect(
           acknowledgements.nth(0)
         ).not.toBeChecked();
-
-        // ----------------------------------------------------
-        // Accept second acknowledgement only.
-        // ----------------------------------------------------
-
-        await acknowledgements
-          .nth(1)
-          .click();
 
         await expect(
           acknowledgements.nth(1)
@@ -437,20 +435,31 @@ test.describe(
 
         // ----------------------------------------------------
         // Attempt submission
+        //
+        // Negative test:
+        // DO NOT use declaration.submit().
         // ----------------------------------------------------
 
-        await submit.declaration.submit();
+        await submit.declaration
+          .clickSubmit();
 
         // ----------------------------------------------------
-        // Submission must remain blocked.
+        // Submission must remain blocked
         // ----------------------------------------------------
 
         await expect(
-          page.getByRole('heading', {
-            name: 'Declaration',
-            level: 2
-          })
+          page.getByRole(
+            'heading',
+            {
+              name: 'Declaration',
+              level: 2
+            }
+          )
         ).toBeVisible();
+
+        // ----------------------------------------------------
+        // State must remain unchanged
+        // ----------------------------------------------------
 
         await expect(
           acknowledgements.nth(0)
@@ -461,9 +470,8 @@ test.describe(
         ).toBeChecked();
       }
     );
-
     // ========================================================
-    // TC-058
+    // TC-096
     // Both declarations can be accepted.
     //
     // This test validates Declaration checkbox behavior only.
@@ -471,7 +479,7 @@ test.describe(
     // ========================================================
 
     test(
-      'TC-058 | User can accept both required declarations @smoke @public @intake',
+      'TC-096 | User can accept both required declarations @smoke @public @intake',
       async ({ page }) => {
         const submit =
           new SubmitReportPage(page);
@@ -515,7 +523,7 @@ test.describe(
     );
 
     // ========================================================
-    // TC-059
+    // TC-097
     // Happy Path:
     // Both declarations accepted + successful report submit.
     //
@@ -525,7 +533,7 @@ test.describe(
     // ========================================================
 
     test(
-      'TC-059 | User can accept both declarations and submit the report successfully @smoke @public @intake',
+      'TC-097 | User can accept both declarations and submit the report successfully @smoke @public @intake',
       async ({ page }) => {
         const submit =
           new SubmitReportPage(page);
@@ -587,7 +595,7 @@ test.describe(
         // ----------------------------------------------------
 
         console.log(
-          'TC-059 Submit API:',
+          'TC-097 Submit API:',
           response.request().method(),
           response.url(),
           status

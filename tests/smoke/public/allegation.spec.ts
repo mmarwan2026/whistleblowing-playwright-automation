@@ -1,57 +1,82 @@
-import { test, expect } from '@playwright/test';
+import {
+  test,
+  expect
+} from '@playwright/test';
 
-import { SubmitReportPage } from '../../../pages/public/submit-report/SubmitReportPage';
-import { ReportingNoticePage } from '../../../pages/public/ReportingNoticePage';
+import {
+  SubmitReportPage
+} from '../../../pages/public/submit-report/SubmitReportPage';
+
+import {
+  ReportingNoticePage
+} from '../../../pages/public/ReportingNoticePage';
 
 
 // ============================================================
-// TC-014
+// SHARED SETUP
+// ============================================================
+
+async function navigateToAllegation(
+  submit: SubmitReportPage,
+  notice: ReportingNoticePage
+): Promise<void> {
+
+  await submit.open();
+
+  await notice.verifyLoaded();
+  await notice.next();
+
+  // Reporter Info
+  await submit.reporterInfo.verifyLoaded();
+
+  await submit.reporterInfo.fill({
+    identityType: 'anonymous',
+    reporterCategory: 'Employee'
+  });
+
+  await submit.reporterInfo.next();
+
+  // Classification
+  await submit.classification.verifyLoaded();
+
+  await submit.classification.selectInternalAuditAnswer(
+    'No'
+  );
+
+  await submit.classification.selectCategory(
+    'Nepotism/Cronyism'
+  );
+
+  await submit.classification.next();
+
+  // Allegation
+  await submit.allegation.verifyLoaded();
+}
+
+
+// ============================================================
+// TC-017
 // Happy Path - Exact Date = Yes
 // ============================================================
 
 test(
-  'TC-014 | User can complete Allegation and continue to Person(s) Involved @smoke @public @intake',
+  'TC-017 | User can complete Allegation and continue to Person(s) Involved @smoke @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
 
-    await submit.open();
+    const notice =
+      new ReportingNoticePage(page);
 
-    // Reporting Notice
-    await notice.verifyLoaded();
-    await notice.next();
-
-    // Reporter Info
-    await submit.reporterInfo.verifyLoaded();
-
-    await submit.reporterInfo.fill({
-      identityType: 'anonymous',
-      reporterCategory: 'Employee'
-    });
-
-    await submit.reporterInfo.next();
-
-    // Classification
-    await submit.classification.verifyLoaded();
-
-    await submit.classification.selectInternalAuditAnswer('No');
-
-    await submit.classification.selectCategory(
-      'Conflict of Interest'
+    await navigateToAllegation(
+      submit,
+      notice
     );
-
-    await submit.classification.selectSubcategory(
-      'Nepotism/Cronyism'
-    );
-
-    await submit.classification.next();
-
-    // Allegation
-    await submit.allegation.verifyLoaded();
 
     await submit.allegation.fill({
-      incidentTitle: 'Potential conflict of interest',
+      incidentTitle:
+        'Potential conflict of interest',
 
       whatHappened:
         'An employee may have participated in a decision involving a related party.',
@@ -65,61 +90,42 @@ test(
       incidentLocation:
         'Riyadh Office',
 
-      knowsExactDate: 'Yes',
+      knowsExactDate:
+        'Yes',
 
-      incidentDate: '2026-09-13',
+      incidentDate:
+        '2026-09-13',
 
-      ongoing: 'No'
+      ongoing:
+        'No'
     });
 
     await submit.allegation.next();
 
-    // Person(s) Involved
-   await submit.personsInvolved.verifyLoaded();
+    await submit.personsInvolved.verifyLoaded();
   }
 );
 
 
 // ============================================================
-// TC-015
+// TC-018
 // Mandatory Fields Validation
 // ============================================================
 
 test(
-  'TC-015 | Allegation mandatory fields validation @negative @public @intake',
+  'TC-018 | Allegation mandatory fields validation @regression @validation @negative @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
 
-    await submit.open();
+    const notice =
+      new ReportingNoticePage(page);
 
-    await notice.verifyLoaded();
-    await notice.next();
-
-    // Reporter Info
-    await submit.reporterInfo.fill({
-      identityType: 'anonymous',
-      reporterCategory: 'Employee'
-    });
-
-    await submit.reporterInfo.next();
-
-    // Classification
-    await submit.classification.selectInternalAuditAnswer('No');
-
-    await submit.classification.selectCategory(
-      'Conflict of Interest'
+    await navigateToAllegation(
+      submit,
+      notice
     );
-
-    await submit.classification.selectSubcategory(
-      'Nepotism/Cronyism'
-    );
-
-    await submit.classification.next();
-
-    // Allegation
-    await submit.allegation.verifyLoaded();
 
     // Do not fill mandatory fields
     await submit.allegation.next();
@@ -132,7 +138,7 @@ test(
       })
     ).toBeVisible();
 
-    // Required Fields
+    // Incident Title
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Title',
@@ -143,6 +149,7 @@ test(
       'true'
     );
 
+    // What Happened
     await expect(
       page.getByRole('textbox', {
         name: 'What Happened?',
@@ -153,6 +160,7 @@ test(
       'true'
     );
 
+    // Awareness Method
     await expect(
       page.getByRole('textbox', {
         name: 'How Did You Become Aware of the Issue?',
@@ -167,50 +175,25 @@ test(
 
 
 // ============================================================
-// TC-016
+// TC-019
 // Exact Date = No
 // Incident Date Description appears
 // ============================================================
 
 test(
-  'TC-016 | Incident Date Description appears when Exact Date is No @public @intake',
+  'TC-019 | Incident Date Description appears when Exact Date is No @regression @conditional @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
 
-    await submit.open();
+    const notice =
+      new ReportingNoticePage(page);
 
-    await notice.verifyLoaded();
-    await notice.next();
-
-    // Reporter Info
-    await submit.reporterInfo.verifyLoaded();
-
-    await submit.reporterInfo.fill({
-      identityType: 'anonymous',
-      reporterCategory: 'Employee'
-    });
-
-    await submit.reporterInfo.next();
-
-    // Classification
-    await submit.classification.verifyLoaded();
-
-    await submit.classification.selectInternalAuditAnswer('No');
-
-    await submit.classification.selectCategory(
-      'Conflict of Interest'
+    await navigateToAllegation(
+      submit,
+      notice
     );
-
-    await submit.classification.selectSubcategory(
-      'Nepotism/Cronyism'
-    );
-
-    await submit.classification.next();
-
-    // Allegation
-    await submit.allegation.verifyLoaded();
 
     await submit.allegation.fill({
       incidentTitle:
@@ -268,56 +251,34 @@ test(
 
 
 // ============================================================
-// TC-017
+// TC-020
 // Ongoing values
-// Yes / No / I don't know
+// Yes / No / Unknown
 // ============================================================
 
 const ongoingOptions = [
   'Yes',
   'No',
-  "I don't know"
+  "Unknown"
 ] as const;
+
 
 for (const ongoing of ongoingOptions) {
 
   test(
-    `TC-017 | User can select "${ongoing}" for Issue Still Ongoing @public @intake`,
+    `TC-020 | User can select "${ongoing}" for Issue Still Ongoing @regression @conditional @public @intake`,
     async ({ page }) => {
 
-      const submit = new SubmitReportPage(page);
-      const notice = new ReportingNoticePage(page);
+      const submit =
+        new SubmitReportPage(page);
 
-      await submit.open();
+      const notice =
+        new ReportingNoticePage(page);
 
-      await notice.verifyLoaded();
-      await notice.next();
-
-      // Reporter Info
-      await submit.reporterInfo.fill({
-        identityType: 'anonymous',
-        reporterCategory: 'Employee'
-      });
-
-      await submit.reporterInfo.next();
-
-      // Classification
-      await submit.classification.selectInternalAuditAnswer(
-        'No'
+      await navigateToAllegation(
+        submit,
+        notice
       );
-
-      await submit.classification.selectCategory(
-        'Conflict of Interest'
-      );
-
-      await submit.classification.selectSubcategory(
-        'Nepotism/Cronyism'
-      );
-
-      await submit.classification.next();
-
-      // Allegation
-      await submit.allegation.verifyLoaded();
 
       await submit.allegation.fill({
         incidentTitle:
@@ -373,47 +334,24 @@ for (const ongoing of ongoingOptions) {
 
 
 // ============================================================
-// TC-018
+// TC-021
 // Incident Date required when Exact Date = Yes
 // ============================================================
 
 test(
-  'TC-018 | Incident Date is required when Exact Date is Yes @negative @public @intake',
+  'TC-021 | Incident Date is required when Exact Date is Yes @regression @validation @negative @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
 
-    await submit.open();
+    const notice =
+      new ReportingNoticePage(page);
 
-    await notice.verifyLoaded();
-    await notice.next();
-
-    // Reporter Info
-    await submit.reporterInfo.fill({
-      identityType: 'anonymous',
-      reporterCategory: 'Employee'
-    });
-
-    await submit.reporterInfo.next();
-
-    // Classification
-    await submit.classification.selectInternalAuditAnswer(
-      'No'
+    await navigateToAllegation(
+      submit,
+      notice
     );
-
-    await submit.classification.selectCategory(
-      'Conflict of Interest'
-    );
-
-    await submit.classification.selectSubcategory(
-      'Nepotism/Cronyism'
-    );
-
-    await submit.classification.next();
-
-    // Allegation
-    await submit.allegation.verifyLoaded();
 
     await submit.allegation.fillIncidentTitle(
       'Potential conflict of interest'
@@ -432,7 +370,8 @@ test(
       'Yes'
     );
 
-    // Do not enter Incident Date
+    // Incident Date intentionally EMPTY
+
     await submit.allegation.selectOngoing(
       'No'
     );
@@ -468,52 +407,25 @@ test(
 
 
 // ============================================================
-// TC-019
+// TC-022
 // Data Persistence
 // Allegation -> Back -> Classification -> Next -> Allegation
 // ============================================================
 
 test(
-  'TC-019 | Allegation data is preserved after Back and returning to Allegation @public @intake',
+  'TC-022 | Allegation data is preserved after Back and returning to Allegation @regression @navigation @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
 
-    await submit.open();
+    const notice =
+      new ReportingNoticePage(page);
 
-    await notice.verifyLoaded();
-    await notice.next();
-
-    // Reporter Info
-    await submit.reporterInfo.verifyLoaded();
-
-    await submit.reporterInfo.fill({
-      identityType: 'anonymous',
-      reporterCategory: 'Employee'
-    });
-
-    await submit.reporterInfo.next();
-
-    // Classification
-    await submit.classification.verifyLoaded();
-
-    await submit.classification.selectInternalAuditAnswer(
-      'No'
+    await navigateToAllegation(
+      submit,
+      notice
     );
-
-    await submit.classification.selectCategory(
-      'Conflict of Interest'
-    );
-
-    await submit.classification.selectSubcategory(
-      'Nepotism/Cronyism'
-    );
-
-    await submit.classification.next();
-
-    // Allegation
-    await submit.allegation.verifyLoaded();
 
     await submit.allegation.fill({
       incidentTitle:
@@ -546,7 +458,7 @@ test(
 
     await submit.classification.verifyLoaded();
 
-    // Classification persistence
+    // Internal Audit answer persistence
     await expect(
       page.getByRole('radio', {
         name: 'No',
@@ -554,20 +466,32 @@ test(
       }).first()
     ).toBeChecked();
 
-    await expect(
-      page.getByRole('combobox', {
-        name: 'Category',
-        exact: true
-      })
-    ).toHaveValue(
-      'Conflict of Interest'
-    );
+    /*
+      Current UI has one Category dropdown only.
+
+      The DOM currently uses a misleading internal
+      id/name, therefore identify the select using
+      its "Select Category" option.
+    */
+
+    const category =
+      page
+        .locator('select')
+        .filter({
+          has: page.locator(
+            'option',
+            {
+              hasText: 'Select Category'
+            }
+          )
+        });
 
     await expect(
-      page.getByRole('combobox', {
-        name: 'Subcategory',
-        exact: true
-      })
+      category
+    ).toBeVisible();
+
+    await expect(
+      category
     ).toHaveValue(
       'Nepotism/Cronyism'
     );
@@ -642,7 +566,7 @@ test(
       })
     ).toBeChecked();
 
-    // Date
+    // Incident Date
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Date',
@@ -652,7 +576,7 @@ test(
       '2026-09-13'
     );
 
-    // Description hidden
+    // Date Description hidden
     await expect(
       page.getByRole('textbox', {
         name: 'Incident Date Description',
@@ -679,47 +603,24 @@ test(
 
 
 // ============================================================
-// TC-020
+// TC-023
 // Change Exact Date Yes -> No
 // ============================================================
 
 test(
-  'TC-020 | Changing Exact Date from Yes to No hides Incident Date and shows Date Description @public @intake',
+  'TC-023 | Changing Exact Date from Yes to No hides Incident Date and shows Date Description @regression @conditional @public @intake',
   async ({ page }) => {
 
-    const submit = new SubmitReportPage(page);
-    const notice = new ReportingNoticePage(page);
+    const submit =
+      new SubmitReportPage(page);
 
-    await submit.open();
+    const notice =
+      new ReportingNoticePage(page);
 
-    await notice.verifyLoaded();
-    await notice.next();
-
-    // Reporter Info
-    await submit.reporterInfo.fill({
-      identityType: 'anonymous',
-      reporterCategory: 'Employee'
-    });
-
-    await submit.reporterInfo.next();
-
-    // Classification
-    await submit.classification.selectInternalAuditAnswer(
-      'No'
+    await navigateToAllegation(
+      submit,
+      notice
     );
-
-    await submit.classification.selectCategory(
-      'Conflict of Interest'
-    );
-
-    await submit.classification.selectSubcategory(
-      'Nepotism/Cronyism'
-    );
-
-    await submit.classification.next();
-
-    // Allegation
-    await submit.allegation.verifyLoaded();
 
     await submit.allegation.fillIncidentTitle(
       'Potential conflict of interest'
@@ -733,10 +634,7 @@ test(
       'I became aware through internal business communication.'
     );
 
-    // =======================================================
     // Exact Date = Yes
-    // =======================================================
-
     await submit.allegation.selectExactDate(
       'Yes'
     );
@@ -767,7 +665,6 @@ test(
       dateDescription
     ).toBeHidden();
 
-    // Enter exact date
     await submit.allegation.fillIncidentDate(
       '2026-09-13'
     );
@@ -778,20 +675,15 @@ test(
       '2026-09-13'
     );
 
-    // =======================================================
     // Change Yes -> No
-    // =======================================================
-
     await submit.allegation.selectExactDate(
       'No'
     );
 
-    // Incident Date disappears
     await expect(
       incidentDate
     ).toBeHidden();
 
-    // Description appears
     await expect(
       dateDescription
     ).toBeVisible();
@@ -806,12 +698,313 @@ test(
       'The exact date is unknown, but the incident occurred approximately during September 2026.'
     );
 
-    // Ongoing
     await submit.allegation.selectOngoing(
       'No'
     );
 
-    // Continue
+    await submit.allegation.next();
+
+    await submit.personsInvolved.verifyLoaded();
+  }
+);
+
+
+// ============================================================
+// TC-024
+// Exact Date selection mandatory
+// ============================================================
+
+test(
+  'TC-024 | Exact Date selection is mandatory @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await navigateToAllegation(
+      submit,
+      notice
+    );
+
+    await submit.allegation.fillIncidentTitle(
+      'Potential conflict of interest'
+    );
+
+    await submit.allegation.fillWhatHappened(
+      'An employee may have participated in a decision involving a related party.'
+    );
+
+    await submit.allegation.fillAwarenessMethod(
+      'I became aware through internal business communication.'
+    );
+
+    // Exact Date intentionally NOT selected
+
+    await submit.allegation.selectOngoing(
+      'No'
+    );
+
+    await submit.allegation.next();
+
+    // Must remain on Allegation
+    await expect(
+      page.getByRole('heading', {
+        name: 'Allegation',
+        level: 2
+      })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole('alert').filter({
+        hasText:
+          'Please complete all mandatory fields'
+      })
+    ).toBeVisible();
+  }
+);
+
+
+// ============================================================
+// TC-025
+// Issue Still Ongoing selection mandatory
+// ============================================================
+
+test(
+  'TC-025 | Issue Still Ongoing selection is mandatory @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await navigateToAllegation(
+      submit,
+      notice
+    );
+
+    await submit.allegation.fillIncidentTitle(
+      'Potential conflict of interest'
+    );
+
+    await submit.allegation.fillWhatHappened(
+      'An employee may have participated in a decision involving a related party.'
+    );
+
+    await submit.allegation.fillAwarenessMethod(
+      'I became aware through internal business communication.'
+    );
+
+    await submit.allegation.selectExactDate(
+      'No'
+    );
+
+    await submit.allegation.fillIncidentDateDescription(
+      'The incident occurred approximately during September 2026.'
+    );
+
+    // Issue Still Ongoing intentionally NOT selected
+
+    await submit.allegation.next();
+
+    // Must remain on Allegation
+    await expect(
+      page.getByRole('heading', {
+        name: 'Allegation',
+        level: 2
+      })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole('alert').filter({
+        hasText:
+          'Please complete all mandatory fields'
+      })
+    ).toBeVisible();
+  }
+);
+
+
+// ============================================================
+// TC-026
+// Incident Date Description required when Exact Date = No
+// ============================================================
+
+test(
+  'TC-026 | Incident Date Description is required when Exact Date is No @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await navigateToAllegation(
+      submit,
+      notice
+    );
+
+    await submit.allegation.fillIncidentTitle(
+      'Potential conflict of interest'
+    );
+
+    await submit.allegation.fillWhatHappened(
+      'An employee may have participated in a decision involving a related party.'
+    );
+
+    await submit.allegation.fillAwarenessMethod(
+      'I became aware through internal business communication.'
+    );
+
+    // Exact Date = No
+    await submit.allegation.selectExactDate(
+      'No'
+    );
+
+    // Incident Date Description intentionally EMPTY
+
+    await submit.allegation.selectOngoing(
+      'No'
+    );
+
+    await submit.allegation.next();
+
+    // Must remain on Allegation
+    await expect(
+      page.getByRole('heading', {
+        name: 'Allegation',
+        level: 2
+      })
+    ).toBeVisible();
+
+    const dateDescription =
+      page.getByRole('textbox', {
+        name: 'Incident Date Description',
+        exact: true
+      });
+
+    await expect(
+      dateDescription
+    ).toBeVisible();
+
+    await expect(
+      dateDescription
+    ).toHaveValue('');
+
+    await expect(
+      dateDescription
+    ).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+  }
+);
+
+
+// ============================================================
+// TC-027
+// Rule / Policy / Law optional
+// ============================================================
+
+test(
+  'TC-027 | Rule Policy or Law is optional @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await navigateToAllegation(
+      submit,
+      notice
+    );
+
+    await submit.allegation.fillIncidentTitle(
+      'Potential conflict of interest'
+    );
+
+    await submit.allegation.fillWhatHappened(
+      'An employee may have participated in a decision involving a related party.'
+    );
+
+    // Rule / Policy / Law intentionally EMPTY
+
+    await submit.allegation.fillAwarenessMethod(
+      'I became aware through internal business communication.'
+    );
+
+    await submit.allegation.selectExactDate(
+      'Yes'
+    );
+
+    await submit.allegation.fillIncidentDate(
+      '2026-09-13'
+    );
+
+    await submit.allegation.selectOngoing(
+      'No'
+    );
+
+    await submit.allegation.next();
+
+    await submit.personsInvolved.verifyLoaded();
+  }
+);
+
+
+// ============================================================
+// TC-028
+// Incident Location optional
+// ============================================================
+
+test(
+  'TC-028 | Incident Location is optional @regression @validation @public @intake',
+  async ({ page }) => {
+
+    const submit =
+      new SubmitReportPage(page);
+
+    const notice =
+      new ReportingNoticePage(page);
+
+    await navigateToAllegation(
+      submit,
+      notice
+    );
+
+    await submit.allegation.fillIncidentTitle(
+      'Potential conflict of interest'
+    );
+
+    await submit.allegation.fillWhatHappened(
+      'An employee may have participated in a decision involving a related party.'
+    );
+
+    await submit.allegation.fillAwarenessMethod(
+      'I became aware through internal business communication.'
+    );
+
+    // Incident Location intentionally EMPTY
+
+    await submit.allegation.selectExactDate(
+      'Yes'
+    );
+
+    await submit.allegation.fillIncidentDate(
+      '2026-09-13'
+    );
+
+    await submit.allegation.selectOngoing(
+      'No'
+    );
+
     await submit.allegation.next();
 
     await submit.personsInvolved.verifyLoaded();
