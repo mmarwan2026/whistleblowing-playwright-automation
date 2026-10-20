@@ -38,14 +38,14 @@ export class FollowUpAccessPage {
 
     await expect(
       this.page.getByRole('heading', {
-        name: 'Follow Up on a Report',
+        name: 'Follow Up on a Previously Submitted Report',
         level: 1
       })
     ).toBeVisible();
 
     await expect(
       this.page.getByLabel(
-        'Case Reference Number',
+        'Reference Number',
         {
           exact: true
         }
@@ -54,7 +54,7 @@ export class FollowUpAccessPage {
 
     await expect(
       this.page.getByLabel(
-        'Access Key',
+        'Access Code',
         {
           exact: true
         }
@@ -63,7 +63,7 @@ export class FollowUpAccessPage {
 
     await expect(
       this.page.getByRole('button', {
-        name: 'Access My Case',
+        name: 'Access Report',
         exact: true
       })
     ).toBeVisible();
@@ -79,7 +79,7 @@ export class FollowUpAccessPage {
 
     const referenceInput =
       this.page.getByLabel(
-        'Case Reference Number',
+        'Reference Number',
         {
           exact: true
         }
@@ -101,7 +101,7 @@ export class FollowUpAccessPage {
   }
 
   // ==========================================================
-  // FILL ACCESS KEY / PIN
+  // FILL ACCESS CODE / PIN
   // ==========================================================
 
   async fillAccessKey(
@@ -110,7 +110,7 @@ export class FollowUpAccessPage {
 
     const accessKeyInput =
       this.page.getByLabel(
-        'Access Key',
+        'Access Code',
         {
           exact: true
         }
@@ -143,7 +143,7 @@ export class FollowUpAccessPage {
 
     const referenceInput =
       this.page.getByLabel(
-        'Case Reference Number',
+        'Reference Number',
         {
           exact: true
         }
@@ -151,7 +151,7 @@ export class FollowUpAccessPage {
 
     const accessKeyInput =
       this.page.getByLabel(
-        'Access Key',
+        'Access Code',
         {
           exact: true
         }
@@ -171,14 +171,14 @@ export class FollowUpAccessPage {
   }
 
   // ==========================================================
-  // ACCESS MY CASE
+  // ACCESS REPORT
   // ==========================================================
 
   async clickAccessMyCase(): Promise<void> {
 
     const accessButton =
       this.page.getByRole('button', {
-        name: 'Access My Case',
+        name: 'Access Report',
         exact: true
       });
 

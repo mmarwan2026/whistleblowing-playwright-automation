@@ -48,6 +48,14 @@ export class ReportFactory {
       allegation:
         AllegationFactory.default(),
 
+      reportDetails: {
+        category: 'Conflict of Interest-Nepotism/Cronyism',
+        incidentDescription: 'Synthetic factory report for automation validation.',
+        awarenessMethod: 'Synthetic automation validation.',
+        incidentDate: '2026-01-01',
+        ongoing: 'No'
+      },
+
       // ------------------------------------------------------
       // PERSON(S) INVOLVED
       // ------------------------------------------------------

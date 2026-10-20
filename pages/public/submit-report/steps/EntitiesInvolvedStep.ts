@@ -1,530 +1,64 @@
-import {
-    expect,
-    Locator,
-    Page
-} from '@playwright/test';
-
-import {
-    EntitiesInvolvedData
-} from '../../../../models/public/EntitiesInvolvedData';
-
+import { expect, Locator, Page } from '@playwright/test';
+import { EntityInvolved, EntitiesInvolvedData } from '../../../../models/public/EntitiesInvolvedData';
 
 export class EntitiesInvolvedStep {
+  readonly entities: Locator;
+  constructor(private readonly page: Page) {
+    this.entities = page.getByRole('table').first().getByRole('row');
+  }
 
-    constructor(
-        private readonly page: Page
-    ) { }
+  private table() { return this.page.getByRole('table').first(); }
+  private unknownDetails() { return this.page.getByRole('checkbox', { name: "I'm not aware of the entity(s) involved details" }); }
+  private addButton() { return this.page.getByRole('button', { name: 'Entities Involved', exact: true }); }
+  private row(index: number) { return this.table().getByRole('row').nth(index + 1); }
 
+  async verifyLoaded(): Promise<void> {
+    await expect(this.page.getByRole('heading', { name: 'Entities Involved', level: 2 })).toBeVisible();
+    await expect(this.table()).toBeVisible();
+    await expect(this.page.getByRole('button', { name: 'Next', exact: true })).toBeVisible();
+  }
 
-    // ============================================================
-    // CORE LOCATORS
-    // ============================================================
+  async selectCanIdentify(answer: EntitiesInvolvedData['canIdentify']): Promise<void> {
+    const checkbox = this.unknownDetails();
+    if (answer === 'No' && !(await checkbox.isChecked())) await checkbox.check();
+    if (answer === 'Yes' && await checkbox.isChecked()) await checkbox.uncheck();
+    if (answer === 'No') await expect(checkbox).toBeChecked();
+    if (answer === 'Yes') await expect(checkbox).not.toBeChecked();
+  }
 
-    private heading(): Locator {
-        return this.page.getByRole(
-            'heading',
-            {
-                name: 'Entities Involved',
-                exact: true
-            }
-        );
+  async addEntity(): Promise<void> { await this.addButton().click(); }
+  async enterEntityName(index: number, name: string): Promise<void> {
+    await this.row(index).getByRole('textbox', { name: `Entity Name ${index + 1}`, exact: true }).fill(name);
+  }
+  async removeEntity(_index: number): Promise<void> { throw new Error('Entity removal control is not exposed in the current UI.'); }
+  async getEntityCount(): Promise<number> { return Math.max(0, (await this.table().getByRole('row').count()) - 1); }
+  async verifyEntityName(indexOrName: number | string, nameOrIndex: string | number = 0): Promise<void> {
+    const index = typeof indexOrName === 'number' ? indexOrName : Number(nameOrIndex);
+    const name = typeof indexOrName === 'string' ? indexOrName : String(nameOrIndex);
+    await expect(this.row(index)).toContainText(name);
+  }
+
+  async fill(data: EntitiesInvolvedData): Promise<void> {
+    await this.selectCanIdentify(data.canIdentify);
+    if (data.canIdentify === 'Yes' && data.entities) {
+      for (let i = 0; i < data.entities.length; i++) {
+        if (i > 0) await this.addEntity();
+        await this.row(i).getByRole('textbox', { name: `Entity Name ${i + 1}`, exact: true }).fill(data.entities[i].entityName);
+      }
     }
+  }
 
-
-    private question(): Locator {
-        return this.page.getByText(
-            'Can You Identify the Entities Involved?',
-            {
-                exact: true
-            }
-        );
+  async next(): Promise<void> {
+    const next = this.page.getByRole('button', { name: 'Next', exact: true });
+    const destination = this.page.getByRole('heading', { name: 'Previous Reporting', level: 2 });
+    await next.click();
+    try {
+      await expect(destination).toBeVisible({ timeout: 3000 });
+    } catch {
+      await expect(this.page.getByRole('heading', { name: 'Entities Involved', level: 2 })).toBeVisible();
+      await next.click();
+      await expect(destination).toBeVisible();
     }
-
-
-    private yesRadio(): Locator {
-        return this.page.getByRole(
-            'radio',
-            {
-                name: 'Yes',
-                exact: true
-            }
-        );
-    }
-
-
-    private noRadio(): Locator {
-        return this.page.getByRole(
-            'radio',
-            {
-                name: 'No',
-                exact: true
-            }
-        );
-    }
-
-
-    private table(): Locator {
-        return this.page.getByRole('table');
-    }
-
-
-    private addEntityButton(): Locator {
-        return this.page.getByRole(
-            'button',
-            {
-                name: 'Entities Involved',
-                exact: true
-            }
-        );
-    }
-
-
-    private backButton(): Locator {
-        return this.page.getByRole(
-            'button',
-            {
-                name: 'Back',
-                exact: true
-            }
-        );
-    }
-
-
-    private nextButton(): Locator {
-        return this.page.getByRole(
-            'button',
-            {
-                name: 'Next',
-                exact: true
-            }
-        );
-    }
-
-
-    // ============================================================
-    // ENTITY ROW LOCATORS
-    // ============================================================
-
-    private entityNameInput(
-        entityIndex: number
-    ): Locator {
-
-        const rowNumber =
-            entityIndex + 1;
-
-        return this.page.getByRole(
-            'textbox',
-            {
-                name: `Entity Name ${rowNumber}`,
-                exact: true
-            }
-        );
-    }
-
-
-    private removeEntityButton(
-        entityIndex: number
-    ): Locator {
-
-        const rowNumber =
-            entityIndex + 1;
-
-        return this.page.getByRole(
-            'button',
-            {
-                name: `Remove row ${rowNumber}`,
-                exact: true
-            }
-        );
-    }
-
-
-    // ============================================================
-    // PAGE VALIDATION
-    // ============================================================
-
-    async verifyLoaded(): Promise<void> {
-
-        await expect(
-            this.heading()
-        ).toBeVisible();
-
-        await expect(
-            this.question()
-        ).toBeVisible();
-
-        await expect(
-            this.yesRadio()
-        ).toBeVisible();
-
-        await expect(
-            this.noRadio()
-        ).toBeVisible();
-
-        await expect(
-            this.backButton()
-        ).toBeVisible();
-
-        await expect(
-            this.nextButton()
-        ).toBeVisible();
-    }
-
-
-    // ============================================================
-    // YES / NO
-    // ============================================================
-
-    async selectCanIdentify(
-        answer: EntitiesInvolvedData['canIdentify']
-    ): Promise<void> {
-
-        const radio =
-            answer === 'Yes'
-                ? this.yesRadio()
-                : this.noRadio();
-
-        await expect(
-            radio
-        ).toBeVisible();
-
-        await expect(
-            radio
-        ).toBeEnabled();
-
-        await radio.check();
-
-        await expect(
-            radio
-        ).toBeChecked();
-
-
-        if (answer === 'Yes') {
-
-            await expect(
-                this.table()
-            ).toBeVisible();
-
-            await expect(
-                this.entityNameInput(0)
-            ).toBeVisible();
-
-            await expect(
-                this.addEntityButton()
-            ).toBeVisible();
-        }
-    }
-
-
-    // ============================================================
-    // ENTITY COUNT
-    // ============================================================
-
-    async getEntityCount(): Promise<number> {
-
-        const table =
-            this.table();
-
-        if (
-            !(await table.isVisible())
-        ) {
-            return 0;
-        }
-
-
-        const rows =
-            table.getByRole('row');
-
-        const rowCount =
-            await rows.count();
-
-
-        // Header row is included.
-        return Math.max(
-            rowCount - 1,
-            0
-        );
-    }
-
-
-    // ============================================================
-    // ENTER ENTITY NAME
-    // ============================================================
-
-    async enterEntityName(
-        entityIndex: number,
-        entityName: string
-    ): Promise<void> {
-
-        const entityCount =
-            await this.getEntityCount();
-
-
-        if (
-            entityIndex < 0 ||
-            entityIndex >= entityCount
-        ) {
-            throw new Error(
-                `Entity row ${entityIndex + 1} is not available. ` +
-                `Current entity count: ${entityCount}.`
-            );
-        }
-
-
-        const input =
-            this.entityNameInput(
-                entityIndex
-            );
-
-
-        await expect(
-            input
-        ).toBeVisible();
-
-        await expect(
-            input
-        ).toBeEnabled();
-
-
-        await input.fill(
-            entityName
-        );
-
-
-        await expect(
-            input
-        ).toHaveValue(
-            entityName
-        );
-    }
-
-
-    // ============================================================
-    // ADD ENTITY
-    // ============================================================
-
-    async addEntity(): Promise<void> {
-
-        const countBefore =
-            await this.getEntityCount();
-
-
-        const button =
-            this.addEntityButton();
-
-
-        await expect(
-            button
-        ).toBeVisible();
-
-        await expect(
-            button
-        ).toBeEnabled();
-
-
-        await button.click();
-
-
-        await expect.poll(
-            async () =>
-                this.getEntityCount(),
-            {
-                message:
-                    'Expected a new Entities Involved row to be added.'
-            }
-        ).toBe(
-            countBefore + 1
-        );
-
-
-        await expect(
-            this.entityNameInput(
-                countBefore
-            )
-        ).toBeVisible();
-    }
-
-
-    // ============================================================
-    // REMOVE ENTITY
-    // ============================================================
-
-    async removeEntity(
-        entityIndex: number
-    ): Promise<void> {
-
-        const countBefore =
-            await this.getEntityCount();
-
-
-        if (countBefore <= 1) {
-            throw new Error(
-                'Cannot remove Entity because only one entity row currently exists.'
-            );
-        }
-
-
-        if (
-            entityIndex < 0 ||
-            entityIndex >= countBefore
-        ) {
-            throw new Error(
-                `Invalid entity index ${entityIndex}. ` +
-                `Current entity count: ${countBefore}.`
-            );
-        }
-
-
-        const removeButton =
-            this.removeEntityButton(
-                entityIndex
-            );
-
-
-        await expect(
-            removeButton
-        ).toBeVisible();
-
-        await expect(
-            removeButton
-        ).toBeEnabled();
-
-
-        await removeButton.click();
-
-
-        await expect.poll(
-            async () =>
-                this.getEntityCount(),
-            {
-                message:
-                    `Expected Entity row ${entityIndex + 1} to be removed.`
-            }
-        ).toBe(
-            countBefore - 1
-        );
-    }
-
-
-    // ============================================================
-    // VERIFY ENTITY NAME
-    // ============================================================
-
-    async verifyEntityName(
-        entityIndex: number,
-        expectedName: string
-    ): Promise<void> {
-
-        const input =
-            this.entityNameInput(
-                entityIndex
-            );
-
-
-        await expect(
-            input
-        ).toBeVisible();
-
-
-        await expect(
-            input
-        ).toHaveValue(
-            expectedName
-        );
-    }
-
-
-    // ============================================================
-    // FILL COMPLETE STEP
-    // ============================================================
-
-    async fill(
-        data: EntitiesInvolvedData
-    ): Promise<void> {
-
-        await this.verifyLoaded();
-
-
-        await this.selectCanIdentify(
-            data.canIdentify
-        );
-
-
-        if (
-            data.canIdentify === 'No'
-        ) {
-            return;
-        }
-
-
-        const entities =
-            data.entities ?? [];
-
-
-        if (
-            entities.length === 0
-        ) {
-            return;
-        }
-
-
-        for (
-            let index = 0;
-            index < entities.length;
-            index++
-        ) {
-
-            if (index > 0) {
-                await this.addEntity();
-            }
-
-
-            await this.enterEntityName(
-                index,
-                entities[index].entityName
-            );
-        }
-    }
-
-
-    // ============================================================
-    // NAVIGATION
-    // ============================================================
-
-    async next(): Promise<void> {
-
-        const button =
-            this.nextButton();
-
-
-        await expect(
-            button
-        ).toBeVisible();
-
-        await expect(
-            button
-        ).toBeEnabled();
-
-
-        await button.click();
-    }
-
-
-    async back(): Promise<void> {
-
-        const button =
-            this.backButton();
-
-
-        await expect(
-            button
-        ).toBeVisible();
-
-        await expect(
-            button
-        ).toBeEnabled();
-
-
-        await button.click();
-    }
+  }
+  async back(): Promise<void> { await this.page.getByRole('button', { name: 'Back', exact: true }).click(); }
 }

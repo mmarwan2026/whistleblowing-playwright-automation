@@ -4,18 +4,42 @@ import { SubmissionResult } from '../../../models/public/SubmissionResult';
 export class SubmissionSuccessPage {
   constructor(private readonly page: Page) {}
 
-  async expectSuccess() {
-    await expect(this.page.getByText(/success|submitted/i).first()).toBeVisible();
+  async expectSuccess(): Promise<void> {
+    await expect(
+      this.page.getByRole('heading', {
+        name: 'Thank You',
+        level: 1
+      })
+    ).toBeVisible();
+
+    await expect(
+      this.page.getByText('Your report has been submitted successfully.', {
+        exact: true
+      })
+    ).toBeVisible();
+
+    await expect(
+      this.page.getByRole('button', {
+        name: 'Download Reference Number and Access Code',
+        exact: true
+      })
+    ).toBeVisible();
+
+    await expect(
+      this.page.getByRole('button', {
+        name: 'Copy Reference & Access Code',
+        exact: true
+      })
+    ).toBeVisible();
   }
 
   async getResult(): Promise<SubmissionResult> {
-    // TODO: replace these with confirmed test IDs/labels from the real success screen.
     const referenceNumber = await this.page
-      .getByTestId('reference-number')
+      .getByText(/^[A-Za-z0-9]{4}(?:-[A-Za-z0-9]{4}){2}$/)
       .innerText();
 
     const pin = await this.page
-      .getByTestId('pin')
+      .getByText(/^\d{6}$/)
       .innerText();
 
     return {

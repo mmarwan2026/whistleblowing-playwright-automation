@@ -11,10 +11,6 @@ import {
 } from '../../pages/public/ReportingNoticePage';
 
 import {
-  EntitiesInvolvedStep
-} from '../../pages/public/submit-report/steps/EntitiesInvolvedStep';
-
-import {
   MinimumAnonymousReportData
 } from '../../data/e2e/MinimumAnonymousReportData';
 
@@ -41,9 +37,6 @@ test.describe(
 
         const notice =
           new ReportingNoticePage(page);
-
-        const entitiesInvolved =
-          new EntitiesInvolvedStep(page);
 
         const data =
           MinimumAnonymousReportData;
@@ -77,30 +70,12 @@ test.describe(
 
         // =====================================================
         // STEP 2
-        // CLASSIFICATION
+        // REPORT DETAILS
         // =====================================================
 
-        await submit.classification.verifyLoaded();
-
-        await submit.classification.fill(
-          data.classification
-        );
-
-        await submit.classification.next();
-
-
-        // =====================================================
-        // STEP 3
-        // ALLEGATION
-        // =====================================================
-
-        await submit.allegation.verifyLoaded();
-
-        await submit.allegation.fill(
-          data.allegation
-        );
-
-        await submit.allegation.next();
+        await submit.reportDetails.verifyLoaded();
+        await submit.reportDetails.fill(data.reportDetails!);
+        await submit.reportDetails.next();
 
 
         // =====================================================
@@ -122,13 +97,13 @@ test.describe(
         // ENTITIES INVOLVED
         // =====================================================
 
-        await entitiesInvolved.verifyLoaded();
+        await submit.entitiesInvolved.verifyLoaded();
 
-        await entitiesInvolved.fill(
+        await submit.entitiesInvolved.fill(
           data.entitiesInvolved
         );
 
-        await entitiesInvolved.next();
+        await submit.entitiesInvolved.next();
 
 
         // =====================================================

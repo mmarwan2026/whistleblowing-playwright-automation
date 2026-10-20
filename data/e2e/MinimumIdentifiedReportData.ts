@@ -3,13 +3,13 @@ import { ReportData } from '../../models/public/ReportData';
 export const MinimumIdentifiedReportData: ReportData = {
   reporter: {
     identityType: 'identified',
-    firstName: 'Ahmed',
-    lastName: 'Ali',
-    company: 'Red Sea Global',
-    department: 'Quality Assurance',
-    position: 'QA Engineer',
-    mobile: '0500000000',
-    email: 'qa.automation@example.com'
+    firstName: 'Synthetic',
+    lastName: 'Reporter',
+    company: 'Synthetic Test Company',
+    department: 'Synthetic Quality Assurance',
+    position: 'Automation Tester',
+    mobile: '+966500000000',
+    email: 'synthetic.reporter@example.test'
   },
   classification: {
     internalAuditAnswer: 'No',
@@ -25,7 +25,29 @@ export const MinimumIdentifiedReportData: ReportData = {
     incidentDateDescription: 'September 2026',
     ongoing: 'No'
   },
-  personsInvolved: { canIdentify: 'No' },
+  reportDetails: {
+    category: 'Conflict of Interest-Nepotism/Cronyism',
+    incidentDescription:
+      'A synthetic employee may have participated in a decision involving a related party.',
+    policyReference: 'Synthetic Conflict of Interest Policy',
+    awarenessMethod:
+      'Observed directly during synthetic automation validation.',
+    location: 'Synthetic Test Site',
+    incidentDate: '2026-10-19',
+    ongoing: 'No'
+  },
+  personsInvolved: {
+    canIdentify: 'Yes',
+    persons: [
+      {
+        fullName: 'Synthetic Involved Person',
+        position: 'Synthetic Position',
+        company: 'Synthetic Test Company',
+        department: 'Synthetic Department',
+        roleInIncident: 'Alleged Perpetrator'
+      }
+    ]
+  },
   entitiesInvolved: {
     canIdentify: 'No',
   },

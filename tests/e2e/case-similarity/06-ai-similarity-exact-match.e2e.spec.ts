@@ -86,25 +86,25 @@ async function submitReport(
     await submit.reporterInfo.fill(data.reporter);
     await submit.reporterInfo.next();
 
-    await submit.classification.verifyLoaded();
-    await submit.classification.fill(data.classification);
-    await submit.classification.next();
-
-    await submit.allegation.verifyLoaded();
-    await submit.allegation.fill(data.allegation);
-    await submit.allegation.next();
+    await submit.reportDetails.verifyLoaded();
+    await submit.reportDetails.fill(data.reportDetails ?? {
+        category: `Conflict of Interest-${data.classification.category}`,
+        incidentDescription: data.allegation.whatHappened,
+        policyReference: data.allegation.rulePolicyLaw,
+        awarenessMethod: data.allegation.awarenessMethod,
+        location: data.allegation.incidentLocation,
+        incidentDate: data.allegation.incidentDate ?? '2026-01-01',
+        ongoing: data.allegation.ongoing ?? 'Unknown'
+    });
+    await submit.reportDetails.next();
 
     await submit.personsInvolved.verifyLoaded();
     await submit.personsInvolved.fill(data.personsInvolved);
     await submit.personsInvolved.next();
 
-    await submit.witnesses.verifyLoaded();
-    await submit.witnesses.fill(data.witnesses);
-    await submit.witnesses.next();
-
-    await submit.evidence.verifyLoaded();
-    await submit.evidence.fill(data.evidence);
-    await submit.evidence.next();
+    await submit.entitiesInvolved.verifyLoaded();
+    await submit.entitiesInvolved.fill(data.entitiesInvolved);
+    await submit.entitiesInvolved.next();
 
     await submit.previousReporting.verifyLoaded();
 
@@ -113,6 +113,10 @@ async function submitReport(
     );
 
     await submit.previousReporting.next();
+
+    await submit.evidence.verifyLoaded();
+    await submit.evidence.fill(data.evidence);
+    await submit.evidence.next();
 
     await submit.declaration.verifyLoaded();
     await submit.declaration.acceptAllAcknowledgements();

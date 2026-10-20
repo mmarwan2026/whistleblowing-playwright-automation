@@ -19,6 +19,15 @@ export const MinimumAnonymousReportData: ReportData = {
     incidentDateDescription: 'September 2026',
     ongoing: 'No'
   },
+  reportDetails: {
+    category: 'Conflict of Interest-Nepotism/Cronyism',
+    incidentDescription:
+      'A synthetic employee may have participated in a decision involving a related party.',
+    awarenessMethod:
+      'Observed directly during synthetic automation validation.',
+    incidentDate: '2026-10-19',
+    ongoing: 'No'
+  },
   personsInvolved: { canIdentify: 'No' },
   entitiesInvolved: {
     canIdentify: 'No',

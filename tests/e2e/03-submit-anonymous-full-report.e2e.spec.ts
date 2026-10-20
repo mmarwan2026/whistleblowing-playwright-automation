@@ -2,8 +2,6 @@ import { test, expect } from '@playwright/test';
 
 import { SubmitReportPage } from '../../pages/public/submit-report/SubmitReportPage';
 import { ReportingNoticePage } from '../../pages/public/ReportingNoticePage';
-import { EntitiesInvolvedStep } from '../../pages/public/submit-report/steps/EntitiesInvolvedStep';
-
 import { FullAnonymousReportData } from '../../data/e2e/FullAnonymousReportData';
 
 import { submitAndValidate } from '../../helpers/public/submitReportAssertions';
@@ -12,13 +10,11 @@ import { submitAndValidate } from '../../helpers/public/submitReportAssertions';
 test.describe('Anonymous Full Report Submission - E2E', () => {
 
     test(
-        'E2E-005 | Anonymous reporter submits full report with person, witness, evidence and previous reporting @e2e @public @intake',
+        'E2E-005 | Anonymous reporter submits full report with person, witness role, evidence and previous reporting @e2e @public @intake',
         async ({ page }) => {
 
             const submit = new SubmitReportPage(page);
             const notice = new ReportingNoticePage(page);
-            const entitiesInvolved = new EntitiesInvolvedStep(page);
-
             const data = FullAnonymousReportData;
 
 
@@ -46,29 +42,12 @@ test.describe('Anonymous Full Report Submission - E2E', () => {
 
 
             // ============================================================
-            // CLASSIFICATION
+            // REPORT DETAILS
             // ============================================================
 
-            await submit.classification.verifyLoaded();
-
-            await submit.classification.fill(
-                data.classification
-            );
-
-            await submit.classification.next();
-
-
-            // ============================================================
-            // ALLEGATION
-            // ============================================================
-
-            await submit.allegation.verifyLoaded();
-
-            await submit.allegation.fill(
-                data.allegation
-            );
-
-            await submit.allegation.next();
+            await submit.reportDetails.verifyLoaded();
+            await submit.reportDetails.fill(data.reportDetails!);
+            await submit.reportDetails.next();
 
 
             // ============================================================
@@ -95,40 +74,20 @@ test.describe('Anonymous Full Report Submission - E2E', () => {
             // ENTITIES INVOLVED
             // ============================================================
 
-            await entitiesInvolved.verifyLoaded();
+            await submit.entitiesInvolved.verifyLoaded();
 
-            await entitiesInvolved.fill(
+            await submit.entitiesInvolved.fill(
                 data.entitiesInvolved
             );
 
             expect(
-                await entitiesInvolved.getEntityCount(),
+                await submit.entitiesInvolved.getEntityCount(),
                 'Entity count should match test data'
             ).toBe(
                 data.entitiesInvolved.entities?.length ?? 0
             );
 
-            await entitiesInvolved.next();
-
-
-            // ============================================================
-            // WITNESSES
-            // ============================================================
-
-            await submit.witnesses.verifyLoaded();
-
-            await submit.witnesses.fill(
-                data.witnesses
-            );
-
-            expect(
-                await submit.witnesses.getWitnessCount(),
-                'Witness count should match test data'
-            ).toBe(
-                data.witnesses.witnesses?.length ?? 0
-            );
-
-            await submit.witnesses.next();
+            await submit.entitiesInvolved.next();
 
 
             // ============================================================
@@ -155,7 +114,7 @@ test.describe('Anonymous Full Report Submission - E2E', () => {
             );
 
             await submit.evidence.verifyFileUploaded(
-                'valid-evidence.pdf'
+                'validevidence.pdf'
             );
 
             await submit.evidence.next();

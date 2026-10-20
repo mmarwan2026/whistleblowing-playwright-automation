@@ -27,25 +27,9 @@ export class EvidenceStep {
       })
     ).toBeVisible();
 
-    await expect(
-      this.page.getByText(
-        /Do You Have Any Supporting Evidence\s*\?/i
-      )
-    ).toBeVisible();
-
-    await expect(
-      this.page.getByRole('radio', {
-        name: 'Yes',
-        exact: true
-      })
-    ).toBeVisible();
-
-    await expect(
-      this.page.getByRole('radio', {
-        name: 'No',
-        exact: true
-      })
-    ).toBeVisible();
+    await expect(this.page.getByRole('checkbox', {
+      name: "I don't have any documents to upload"
+    })).toBeVisible();
   }
 
   // =========================================================
@@ -56,24 +40,13 @@ export class EvidenceStep {
     answer: EvidenceData['hasSupportingEvidence']
   ): Promise<void> {
 
-    const radio =
-      this.page.getByRole(
-        'radio',
-        {
-          name: answer,
-          exact: true
-        }
-      );
-
-    await expect(
-      radio
-    ).toBeVisible();
-
-    await radio.check();
-
-    await expect(
-      radio
-    ).toBeChecked();
+    const checkbox = this.page.getByRole('checkbox', {
+      name: "I don't have any documents to upload"
+    });
+    if (answer === 'No' && !(await checkbox.isChecked())) await checkbox.click();
+    if (answer === 'Yes' && await checkbox.isChecked()) await checkbox.click();
+    if (answer === 'No') await expect(checkbox).toBeChecked();
+    if (answer === 'Yes') await expect(checkbox).not.toBeChecked();
   }
 
   // =========================================================
@@ -119,15 +92,10 @@ export class EvidenceStep {
     fileName: string
   ): Locator {
 
-    const displayedFileName =
-      this.normalizeDisplayedFileName(
-        fileName
-      );
-
     return this.page
-      .getByRole('listitem')
+      .getByRole('row')
       .filter({
-        hasText: displayedFileName
+        hasText: fileName
       });
   }
 
@@ -137,18 +105,7 @@ export class EvidenceStep {
 
   async verifyUploadSectionVisible(): Promise<void> {
 
-    await expect(
-      this.page.getByText(
-        'File Upload Guidance:',
-        {
-          exact: false
-        }
-      )
-    ).toBeVisible();
-
-    await expect(
-      this.getFileInput()
-    ).toHaveCount(1);
+    await expect(this.page.getByRole('button', { name: 'Upload File', exact: true })).toBeVisible();
   }
 
   // =========================================================
@@ -166,9 +123,21 @@ export class EvidenceStep {
       fileInput
     ).toHaveCount(1);
 
-    await fileInput.setInputFiles(
-      filePath
-    );
+    await this.page.getByRole('button', {
+      name: 'Upload File',
+      exact: true
+    }).last().click();
+
+    const consentButton = this.page.getByRole('dialog').getByRole('button', {
+      name: 'I Accept',
+      exact: true
+    });
+
+    await expect(consentButton).toBeVisible();
+    await consentButton.click();
+    await expect(this.page.getByRole('dialog')).toBeHidden();
+    await fileInput.setInputFiles(filePath);
+
   }
 
   // =========================================================
@@ -178,17 +147,9 @@ export class EvidenceStep {
   async uploadFiles(
     filePaths: string[]
   ): Promise<void> {
-
-    const fileInput =
-      this.getFileInput();
-
-    await expect(
-      fileInput
-    ).toHaveCount(1);
-
-    await fileInput.setInputFiles(
-      filePaths
-    );
+    for (const filePath of filePaths) {
+      await this.uploadFile(filePath);
+    }
   }
 
   // =========================================================
@@ -198,11 +159,6 @@ export class EvidenceStep {
   async verifyFileUploaded(
     fileName: string
   ): Promise<void> {
-
-    const displayedFileName =
-      this.normalizeDisplayedFileName(
-        fileName
-      );
 
     const fileItem =
       this.getFileItem(
@@ -215,29 +171,26 @@ export class EvidenceStep {
 
     await expect(
       fileItem.getByText(
-        displayedFileName,
+        fileName,
         {
           exact: true
         }
       )
     ).toBeVisible();
+  }
 
-    await expect(
-      fileItem.getByText(
-        /Uploaded/i
-      )
-    ).toBeVisible();
+  async fillFileDescriptions(
+    descriptions: string[]
+  ): Promise<void> {
+    const fields = this.page.locator(
+      'textarea[placeholder*="Please clearly indicate how this document relates"]'
+    );
 
-    await expect(
-      fileItem.getByRole(
-        'button',
-        {
-          name:
-            `Remove: ${displayedFileName}`,
-          exact: true
-        }
-      )
-    ).toBeVisible();
+    await expect(fields).toHaveCount(descriptions.length);
+
+    for (let index = 0; index < descriptions.length; index += 1) {
+      await fields.nth(index).fill(descriptions[index]);
+    }
   }
 
   // =========================================================
@@ -248,14 +201,9 @@ export class EvidenceStep {
     fileName: string
   ): Promise<void> {
 
-    const displayedFileName =
-      this.normalizeDisplayedFileName(
-        fileName
-      );
-
     await expect(
       this.page.getByText(
-        displayedFileName,
+        fileName,
         {
           exact: true
         }
@@ -271,11 +219,6 @@ export class EvidenceStep {
     fileName: string
   ): Promise<void> {
 
-    const displayedFileName =
-      this.normalizeDisplayedFileName(
-        fileName
-      );
-
     const fileItem =
       this.getFileItem(
         fileName
@@ -288,11 +231,7 @@ export class EvidenceStep {
     const removeButton =
       fileItem.getByRole(
         'button',
-        {
-          name:
-            `Remove: ${displayedFileName}`,
-          exact: true
-        }
+        { name: new RegExp(`Remove.*${fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i') }
       );
 
     await expect(
@@ -360,6 +299,10 @@ export class EvidenceStep {
         data.filePaths[0]
       );
 
+      if (data.fileDescriptions?.length) {
+        await this.fillFileDescriptions(data.fileDescriptions);
+      }
+
       return;
     }
 
@@ -370,6 +313,10 @@ export class EvidenceStep {
     await this.uploadFiles(
       data.filePaths
     );
+
+    if (data.fileDescriptions?.length) {
+      await this.fillFileDescriptions(data.fileDescriptions);
+    }
   }
 
   // =========================================================
@@ -377,16 +324,16 @@ export class EvidenceStep {
   // =========================================================
 
   async next(): Promise<void> {
-
-    await this.page
-      .getByRole(
-        'button',
-        {
-          name: 'Next',
-          exact: true
-        }
-      )
-      .click();
+    const next = this.page.getByRole('button', { name: 'Next', exact: true });
+    const destination = this.page.getByRole('heading', { name: 'Declaration', level: 2 });
+    await next.click();
+    try {
+      await expect(destination).toBeVisible({ timeout: 3000 });
+    } catch {
+      await expect(this.page.getByRole('heading', { name: 'Evidence', level: 2 })).toBeVisible();
+      await next.click();
+      await expect(destination).toBeVisible();
+    }
   }
 
   // =========================================================
@@ -405,4 +352,4 @@ export class EvidenceStep {
       )
       .click();
   }
-} 
+}

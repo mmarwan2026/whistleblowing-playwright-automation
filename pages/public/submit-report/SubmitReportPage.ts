@@ -4,6 +4,7 @@ import { Routes } from '../../../config/urls';
 import { ReporterInfoStep } from './steps/ReporterInfoStep';
 import { ClassificationStep } from './steps/ClassificationStep';
 import { AllegationStep } from './steps/AllegationStep';
+import { ReportDetailsStep } from './steps/ReportDetailsStep';
 import { PersonsInvolvedStep } from './steps/PersonsInvolvedStep';
 import { EntitiesInvolvedStep } from './steps/EntitiesInvolvedStep';
 import { WitnessesStep } from './steps/WitnessesStep';
@@ -15,6 +16,7 @@ export class SubmitReportPage {
   readonly reporterInfo: ReporterInfoStep;
   readonly classification: ClassificationStep;
   readonly allegation: AllegationStep;
+  readonly reportDetails: ReportDetailsStep;
   readonly personsInvolved: PersonsInvolvedStep;
   readonly entitiesInvolved: EntitiesInvolvedStep;
   readonly witnesses: WitnessesStep;
@@ -31,6 +33,9 @@ export class SubmitReportPage {
 
     this.allegation =
       new AllegationStep(page);
+
+    this.reportDetails =
+      new ReportDetailsStep(page);
 
     this.personsInvolved =
       new PersonsInvolvedStep(page);

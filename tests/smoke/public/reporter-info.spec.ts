@@ -23,7 +23,7 @@ import {
 // ============================================================
 
 test(
-  'TC-001 | Anonymous reporter can continue to Classification @smoke @public @intake',
+  'TC-001 | Anonymous reporter can continue to Report Details @smoke @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -59,12 +59,12 @@ test(
     await submit.reporterInfo.next();
 
     // --------------------------------------------------------
-    // Classification
+    // Report Details
     // --------------------------------------------------------
 
     await expect(
       page.getByRole('heading', {
-        name: 'Classification',
+        name: 'Report Details',
         level: 2
       })
     ).toBeVisible();
@@ -78,7 +78,7 @@ test(
 // ============================================================
 
 test(
-  'TC-002 | Identified reporter can continue to Classification @smoke @public @intake',
+  'TC-002 | Identified reporter can continue to Report Details @smoke @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -119,7 +119,7 @@ test(
 
     await expect(
       page.getByRole('heading', {
-        name: 'Classification',
+        name: 'Report Details',
         level: 2
       })
     ).toBeVisible();
@@ -164,17 +164,6 @@ test(
     await submit.reporterInfo.next();
 
     // --------------------------------------------------------
-    // General validation
-    // --------------------------------------------------------
-
-    await expect(
-      page.getByRole('alert').filter({
-        hasText:
-          'Please complete all mandatory fields'
-      })
-    ).toBeVisible();
-
-    // --------------------------------------------------------
     // Reporter Category validation
     // --------------------------------------------------------
 
@@ -187,12 +176,7 @@ test(
       reporterCategory
     ).toBeVisible();
 
-    await expect(
-      reporterCategory
-    ).toHaveAttribute(
-      'aria-invalid',
-      'true'
-    );
+    await expect(reporterCategory).toHaveValue('');
 
     // --------------------------------------------------------
     // Must remain on Reporter Info
@@ -200,7 +184,7 @@ test(
 
     await expect(
       page.getByRole('heading', {
-        name: 'Reporter Info',
+        name: 'Reporter Information',
         level: 2
       })
     ).toBeVisible();
@@ -237,32 +221,9 @@ test(
 
     await submit.reporterInfo.next();
 
-    // --------------------------------------------------------
-    // Validation alert
-    // --------------------------------------------------------
-
-    await expect(
-      page.getByRole('alert').filter({
-        hasText:
-          'Please complete all mandatory fields'
-      })
-    ).toBeVisible();
-
-    // --------------------------------------------------------
-    // Neither identity option should be selected
-    // --------------------------------------------------------
-
-    await expect(
-      page.getByRole('radio', {
-        name: 'Disclose my identity'
-      })
-    ).not.toBeChecked();
-
-    await expect(
-      page.getByRole('radio', {
-        name: 'Remain anonymous'
-      })
-    ).not.toBeChecked();
+    await expect(page.getByRole('checkbox', {
+      name: "I Don't Wish to Disclose My Identity and Would Like to Stay Anonymous"
+    })).not.toBeChecked();
 
     // --------------------------------------------------------
     // Remain on Reporter Info
@@ -270,7 +231,7 @@ test(
 
     await expect(
       page.getByRole('heading', {
-        name: 'Reporter Info',
+        name: 'Reporter Information',
         level: 2
       })
     ).toBeVisible();
@@ -323,7 +284,7 @@ test(
 
     await expect(
       page.getByRole('heading', {
-        name: 'Reporter Info',
+        name: 'Reporter Information',
         level: 2
       })
     ).toBeVisible();
@@ -359,7 +320,7 @@ test(
 
     const quickExit =
       page.getByRole('button', {
-        name: 'QUICK EXIT (ESC)'
+        name: 'QUICK EXIT'
       });
 
     await expect(
@@ -376,7 +337,7 @@ test(
 
     await expect(
       page.getByRole('heading', {
-        name: 'Reporter Info',
+        name: 'Reporter Information',
         level: 2
       })
     ).toBeVisible();
@@ -419,23 +380,12 @@ test(
     await submit.reporterInfo.next();
 
     // --------------------------------------------------------
-    // General validation
-    // --------------------------------------------------------
-
-    await expect(
-      page.getByRole('alert').filter({
-        hasText:
-          'Please complete all mandatory fields'
-      })
-    ).toBeVisible();
-
-    // --------------------------------------------------------
     // Must remain on Reporter Info
     // --------------------------------------------------------
 
     await expect(
       page.getByRole('heading', {
-        name: 'Reporter Info',
+        name: 'Reporter Information',
         level: 2
       })
     ).toBeVisible();

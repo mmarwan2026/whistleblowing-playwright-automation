@@ -10,9 +10,11 @@ import {
 
 export type SubmitReportTargetStep =
   | 'reporterInfo'
+  | 'reportDetails'
   | 'classification'
   | 'allegation'
   | 'personsInvolved'
+  | 'entitiesInvolved'
   | 'witnesses'
   | 'evidence'
   | 'previousReporting';
@@ -38,46 +40,34 @@ export class SubmitReportFlow {
 
     await this.submit.reporterInfo.fill({
       identityType: 'identified',
-      firstName: 'Mohamed',
-      lastName: 'Marwan',
-      company: 'Red Sea Global',
-      department: 'Quality Assurance',
-      position: 'QA Engineer',
-      mobile: '01008898020',
-      email: 'mmarwan@ntgclarity.com'
+      firstName: 'Synthetic',
+      lastName: 'Reporter',
+      company: 'Synthetic Test Company',
+      department: 'Synthetic Quality Assurance',
+      position: 'Synthetic QA Engineer',
+      mobile: '+966500000002',
+      email: 'flow.reporter@example.test'
     });
 
     await this.submit.reporterInfo.next();
-    await this.submit.classification.verifyLoaded();
+    await this.submit.reportDetails.verifyLoaded();
   }
 
   async completeValidClassification(): Promise<void> {
-    await this.submit.classification.verifyLoaded();
-    await this.submit.classification.selectInternalAuditAnswer('No');
-    await this.submit.classification.selectCategory(
-      'Nepotism/Cronyism'
-    );
-    await this.submit.classification.next();
-    await this.submit.allegation.verifyLoaded();
+    await this.submit.reportDetails.verifyLoaded();
+    await this.submit.reportDetails.fill({
+      category: 'Conflict of Interest-Nepotism/Cronyism',
+      incidentDescription: 'Synthetic flow validation report.',
+      policyReference: 'Synthetic policy reference',
+      awarenessMethod: 'Synthetic automation validation.',
+      location: 'Synthetic test location',
+      incidentDate: '2026-01-01',
+      ongoing: 'No'
+    });
+    await this.submit.reportDetails.next();
   }
 
   async completeValidAllegation(): Promise<void> {
-    await this.submit.allegation.verifyLoaded();
-
-    await this.submit.allegation.fill({
-      incidentTitle: 'Potential procurement conflict of interest',
-      whatHappened:
-        'A procurement decision may have involved an employee with a personal relationship to a related party.',
-      rulePolicyLaw: 'Conflict of Interest Policy',
-      awarenessMethod:
-        'I became aware through internal business communication and supporting documentation.',
-      incidentLocation: 'Corporate Office',
-      knowsExactDate: 'No',
-      incidentDateDescription: 'September 2026',
-      ongoing: 'No'
-    });
-
-    await this.submit.allegation.next();
     await this.submit.personsInvolved.verifyLoaded();
   }
 
@@ -88,29 +78,31 @@ export class SubmitReportFlow {
       canIdentify: 'Yes',
       persons: [
         {
-          fullName: 'Ahmed Hassan',
-          position: 'Procurement Manager',
-          company: 'Red Sea Global',
-          department: 'Procurement',
-          email: 'ahmed.hassan@example.com',
-          phone: '0501234567',
+          fullName: 'Synthetic Involved Person',
+          position: 'Synthetic Manager',
+          company: 'Synthetic Test Company',
+          department: 'Synthetic Department',
+          email: 'involved.person@example.test',
+          phone: '0500000003',
           roleInIncident: 'Victim'
         }
       ]
     });
 
     await this.submit.personsInvolved.next();
-    await this.submit.witnesses.verifyLoaded();
+    await this.submit.entitiesInvolved.verifyLoaded();
+  }
+
+  async completeValidEntitiesInvolved(): Promise<void> {
+    await this.submit.entitiesInvolved.verifyLoaded();
+    await this.submit.entitiesInvolved.fill({ canIdentify: 'No' });
+    await this.submit.entitiesInvolved.next();
+    await this.submit.previousReporting.verifyLoaded();
   }
 
   async completeValidWitnesses(): Promise<void> {
-    await this.submit.witnesses.verifyLoaded();
-
-    await this.submit.witnesses.fill({
-      hasWitnesses: 'No'
-    });
-
-    await this.submit.witnesses.next();
+    // Witnesses are now represented by the Person(s) Involved grid.
+    await this.completeValidEntitiesInvolved();
     await this.submit.evidence.verifyLoaded();
   }
 
@@ -118,7 +110,7 @@ export class SubmitReportFlow {
     await this.submit.evidence.verifyLoaded();
     await this.submit.evidence.selectEvidenceAnswer('No');
     await this.submit.evidence.next();
-    await this.submit.previousReporting.verifyLoaded();
+    await this.submit.declaration.verifyLoaded();
   }
 
   async goTo(
@@ -130,7 +122,7 @@ export class SubmitReportFlow {
 
     await this.completeValidReporterInfo();
 
-    if (target === 'classification') return;
+    if (target === 'reportDetails' || target === 'classification') return;
 
     await this.completeValidClassification();
 
@@ -141,6 +133,8 @@ export class SubmitReportFlow {
     if (target === 'personsInvolved') return;
 
     await this.completeValidPersonsInvolved();
+
+    if (target === 'entitiesInvolved') return;
 
     if (target === 'witnesses') return;
 

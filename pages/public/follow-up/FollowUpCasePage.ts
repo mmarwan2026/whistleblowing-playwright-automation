@@ -17,7 +17,7 @@ export class FollowUpCasePage {
 
     await expect(
       this.page.getByRole('heading', {
-        name: 'Your case',
+        name: 'Your Report',
         level: 1
       })
     ).toBeVisible();
@@ -33,7 +33,21 @@ export class FollowUpCasePage {
 
     await expect(
       this.page.getByRole('button', {
-        name: 'Check another case',
+        name: 'View Report',
+        exact: true
+      })
+    ).toBeVisible();
+
+    await expect(
+      this.page.getByRole('button', {
+        name: 'Mailbox',
+        exact: true
+      })
+    ).toBeVisible();
+
+    await expect(
+      this.page.getByRole('button', {
+        name: 'Attachments History',
         exact: true
       })
     ).toBeVisible();
