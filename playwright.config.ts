@@ -13,11 +13,14 @@ export default defineConfig({
   },
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'playwright-report', open: 'never' }]
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ...(process.env.CI
+      ? [['junit', { outputFile: 'test-results/junit.xml' }] as const]
+      : [])
   ],
   use: {
     baseURL: process.env.BASE_URL,
-    trace: 'retain-on-failure',
+    trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     actionTimeout: 15_000,

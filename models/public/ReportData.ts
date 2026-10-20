@@ -34,6 +34,10 @@ import {
   DeclarationData
 } from './DeclarationData';
 
+import {
+  ReportDetailsData
+} from './ReportDetailsData';
+
 
 export interface ReportData {
 
@@ -45,6 +49,9 @@ export interface ReportData {
 
   allegation:
   AllegationData;
+
+  reportDetails?:
+  ReportDetailsData;
 
   personsInvolved:
   PersonInvolvedData;

@@ -22,11 +22,6 @@ import {
   submitAndValidate
 } from '../../helpers/public/submitReportAssertions';
 
-import {
-  EntitiesInvolvedStep
-} from '../../pages/public/submit-report/steps/EntitiesInvolvedStep';
-
-
 export class AnonymousReportFlow {
 
   private readonly submitPage:
@@ -34,10 +29,6 @@ export class AnonymousReportFlow {
 
   private readonly noticePage:
     ReportingNoticePage;
-
-  private readonly entitiesInvolvedStep:
-    EntitiesInvolvedStep;
-
 
   constructor(
     private readonly page: Page
@@ -49,8 +40,6 @@ export class AnonymousReportFlow {
     this.noticePage =
       new ReportingNoticePage(page);
 
-    this.entitiesInvolvedStep =
-      new EntitiesInvolvedStep(page);
   }
 
 
@@ -96,41 +85,23 @@ export class AnonymousReportFlow {
 
 
     // ========================================================
-    // STEP 2 - CLASSIFICATION
+    // STEP 2 - REPORT DETAILS
     // ========================================================
 
-    await this.submitPage
-      .classification
-      .verifyLoaded();
+    await this.submitPage.reportDetails.verifyLoaded();
 
-    await this.submitPage
-      .classification
-      .fill(
-        report.classification
-      );
+    const reportDetails = report.reportDetails ?? {
+      category: `Conflict of Interest-${report.classification.category}`,
+      incidentDescription: report.allegation.whatHappened,
+      policyReference: report.allegation.rulePolicyLaw,
+      awarenessMethod: report.allegation.awarenessMethod,
+      location: report.allegation.incidentLocation,
+      incidentDate: report.allegation.incidentDate ?? '2026-01-01',
+      ongoing: report.allegation.ongoing ?? 'Unknown'
+    };
 
-    await this.submitPage
-      .classification
-      .next();
-
-
-    // ========================================================
-    // STEP 3 - ALLEGATION
-    // ========================================================
-
-    await this.submitPage
-      .allegation
-      .verifyLoaded();
-
-    await this.submitPage
-      .allegation
-      .fill(
-        report.allegation
-      );
-
-    await this.submitPage
-      .allegation
-      .next();
+    await this.submitPage.reportDetails.fill(reportDetails);
+    await this.submitPage.reportDetails.next();
 
 
     // ========================================================
@@ -156,34 +127,15 @@ export class AnonymousReportFlow {
     // STEP 5 - ENTITIES INVOLVED
     // ========================================================
 
-    await this.entitiesInvolvedStep
+    await this.submitPage.entitiesInvolved
       .verifyLoaded();
 
-    await this.entitiesInvolvedStep
+    await this.submitPage.entitiesInvolved
       .fill(
         report.entitiesInvolved
       );
 
-    await this.entitiesInvolvedStep
-      .next();
-
-
-    // ========================================================
-    // STEP 6 - WITNESSES
-    // ========================================================
-
-    await this.submitPage
-      .witnesses
-      .verifyLoaded();
-
-    await this.submitPage
-      .witnesses
-      .fill(
-        report.witnesses
-      );
-
-    await this.submitPage
-      .witnesses
+    await this.submitPage.entitiesInvolved
       .next();
 
 
@@ -300,7 +252,7 @@ export class AnonymousReportFlow {
       !confidentialityAcknowledged
     ) {
       throw new Error(
-        'AnonymousReportFlow requires both declaration acknowledgements to be accepted.'
+        'AnonymousReportFlow requires the declaration acknowledgement to be accepted.'
       );
     }
 

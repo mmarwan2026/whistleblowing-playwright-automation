@@ -40,7 +40,7 @@ export async function submitAndValidate(
   expect(
     body.data.reference,
     `${testId}: report reference must be generated`
-  ).toMatch(/^RSG-\d{4}-\d+$/);
+  ).toMatch(/^[A-Za-z0-9]{4}(?:-[A-Za-z0-9]{4}){2}$/);
 
   await expect(
     page.getByRole('heading', {

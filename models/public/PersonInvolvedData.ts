@@ -1,6 +1,9 @@
 export type PersonRoleInIncident =
   | 'Accused'
-  | 'Victim';
+  | 'Victim'
+  | 'Reporter'
+  | 'Alleged Perpetrator'
+  | 'Witness';
 
 
 export interface InvolvedPerson {

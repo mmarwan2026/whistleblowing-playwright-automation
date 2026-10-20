@@ -1,7 +1,7 @@
 import { expect, Page } from '@playwright/test';
 
 export class ReportingNoticePage {
-  constructor(private readonly page: Page) {}
+  constructor(private readonly page: Page) { }
 
   async verifyLoaded() {
     await expect(
@@ -12,7 +12,7 @@ export class ReportingNoticePage {
     ).toBeVisible();
 
     await expect(
-      this.page.getByRole('button', { name: 'Next' })
+      this.page.getByRole('button', { name: 'Confirm and continue' })
     ).toBeVisible();
 
     await expect(
@@ -22,7 +22,7 @@ export class ReportingNoticePage {
 
   async next() {
     await this.page
-      .getByRole('button', { name: 'Next' })
+      .getByRole('button', { name: 'Confirm and continue' })
       .click();
   }
 

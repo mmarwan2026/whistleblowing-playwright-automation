@@ -1,9 +1,7 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { SubmitReportPage } from '../../pages/public/submit-report/SubmitReportPage';
 import { ReportingNoticePage } from '../../pages/public/ReportingNoticePage';
-import { EntitiesInvolvedStep } from '../../pages/public/submit-report/steps/EntitiesInvolvedStep';
-
 import { MinimumIdentifiedReportData } from '../../data/e2e/MinimumIdentifiedReportData';
 
 import { submitAndValidate } from '../../helpers/public/submitReportAssertions';
@@ -17,8 +15,6 @@ test.describe('Identified Report Submission - E2E', () => {
 
       const submit = new SubmitReportPage(page);
       const notice = new ReportingNoticePage(page);
-      const entitiesInvolved = new EntitiesInvolvedStep(page);
-
       const data = MinimumIdentifiedReportData;
 
 
@@ -46,29 +42,12 @@ test.describe('Identified Report Submission - E2E', () => {
 
 
       // ============================================================
-      // CLASSIFICATION
+      // REPORT DETAILS
       // ============================================================
 
-      await submit.classification.verifyLoaded();
-
-      await submit.classification.fill(
-        data.classification
-      );
-
-      await submit.classification.next();
-
-
-      // ============================================================
-      // ALLEGATION
-      // ============================================================
-
-      await submit.allegation.verifyLoaded();
-
-      await submit.allegation.fill(
-        data.allegation
-      );
-
-      await submit.allegation.next();
+      await submit.reportDetails.verifyLoaded();
+      await submit.reportDetails.fill(data.reportDetails!);
+      await submit.reportDetails.next();
 
 
       // ============================================================
@@ -81,6 +60,14 @@ test.describe('Identified Report Submission - E2E', () => {
         data.personsInvolved
       );
 
+      await expect(
+        page.getByRole('textbox', { name: 'Full Name 1', exact: true })
+      ).toHaveValue('Synthetic Involved Person');
+
+      await expect(
+        page.getByRole('combobox', { name: 'Role In Incident 1', exact: true })
+      ).toHaveValue('Alleged Perpetrator');
+
       await submit.personsInvolved.next();
 
 
@@ -88,26 +75,13 @@ test.describe('Identified Report Submission - E2E', () => {
       // ENTITIES INVOLVED
       // ============================================================
 
-      await entitiesInvolved.verifyLoaded();
+      await submit.entitiesInvolved.verifyLoaded();
 
-      await entitiesInvolved.fill(
+      await submit.entitiesInvolved.fill(
         data.entitiesInvolved
       );
 
-      await entitiesInvolved.next();
-
-
-      // ============================================================
-      // WITNESSES
-      // ============================================================
-
-      await submit.witnesses.verifyLoaded();
-
-      await submit.witnesses.fill(
-        data.witnesses
-      );
-
-      await submit.witnesses.next();
+      await submit.entitiesInvolved.next();
 
 
       // ============================================================
@@ -119,74 +93,11 @@ test.describe('Identified Report Submission - E2E', () => {
       await submit.previousReporting.fill(
         data.previousReporting
       );
-
-
-      // ============================================================
-      // DIAGNOSTIC - BEFORE PREVIOUS REPORTING NEXT
-      // ============================================================
-
-      console.log('');
-      console.log('========================================');
-      console.log('PREVIOUS REPORTING - BEFORE NEXT');
-      console.log('URL:', page.url());
-
-      console.log(
-        'HEADINGS:',
-        await page
-          .locator('h1,h2,h3,h4,h5,h6')
-          .allTextContents()
-      );
-
-      console.log(
-        'BUTTONS:',
-        await page
-          .getByRole('button')
-          .allTextContents()
-      );
-
-      console.log('========================================');
-      console.log('');
-
-
       // ============================================================
       // NEXT FROM PREVIOUS REPORTING
       // ============================================================
 
       await submit.previousReporting.next();
-
-
-      // ============================================================
-      // WAIT FOR UI UPDATE
-      // ============================================================
-
-      await page.waitForTimeout(500);
-
-
-      // ============================================================
-      // DIAGNOSTIC - AFTER PREVIOUS REPORTING NEXT
-      // ============================================================
-
-      console.log('');
-      console.log('========================================');
-      console.log('PREVIOUS REPORTING - AFTER NEXT');
-      console.log('URL:', page.url());
-
-      console.log(
-        'HEADINGS:',
-        await page
-          .locator('h1,h2,h3,h4,h5,h6')
-          .allTextContents()
-      );
-
-      console.log(
-        'BUTTONS:',
-        await page
-          .getByRole('button')
-          .allTextContents()
-      );
-
-      console.log('========================================');
-      console.log('');
 
 
       // ============================================================
