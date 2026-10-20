@@ -57,7 +57,7 @@ export async function submitAndValidate(
   ).toBeHidden();
 
   console.log(`${testId} Report Reference:`, body.data.reference);
-
+  console.log(`${testId} Report Pin:`, body.data.pin);
   return {
     reference: body.data.reference,
     pin: body.data.pin

@@ -9,7 +9,7 @@ export const MinimumIdentifiedReportData: ReportData = {
     department: 'Synthetic Quality Assurance',
     position: 'Automation Tester',
     mobile: '+966500000000',
-    email: 'synthetic.reporter@example.test'
+    email: 'mmarwan@ntgclarity.com'
   },
   classification: {
     internalAuditAnswer: 'No',
