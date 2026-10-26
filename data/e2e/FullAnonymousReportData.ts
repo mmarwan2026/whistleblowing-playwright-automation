@@ -1,30 +1,14 @@
-import { ReportData } from '../../models/public/ReportData';
+import type { ReportData } from '../../models/public/ReportData';
 
+// Also used as the base fixture for the similarity benchmarks, which need ReportData.
 export const FullAnonymousReportData: ReportData = {
     reporter: {
         identityType: 'anonymous',
         reporterCategory: 'Employee'
     },
 
-    classification: {
-        internalAuditAnswer: 'No',
-        category: 'Nepotism/Cronyism',
-    },
-    allegation: {
-        incidentTitle: 'عدم الالتزام بإجراءات السلامة المطلوبة في موقع العمل',
-        whatHappened:
-            'تمت ملاحظة عدد من الموظفين أثناء تنفيذ أعمال صيانة داخل منطقة محظورة دون الالتزام بإجراءات السلامة المطلوبة أو استخدام معدات الوقاية الشخصية الإلزامية.',
-        rulePolicyLaw:
-            'سياسة الصحة والسلامة والبيئة وإجراءات السلامة المهنية المعتمدة',
-        awarenessMethod:
-            'علمت بمخالفة إجراءات السلامة أثناء ملاحظتي لأعمال الصيانة الروتينية التي كانت تُنفذ في موقع العمل.',
-        incidentLocation: 'منطقة الصيانة والتشغيل',
-        knowsExactDate: 'No',
-        incidentDateDescription: 'سبتمبر 2026',
-        ongoing: 'No'
-    },
     reportDetails: {
-        category: 'Health, Safety & Environment-Safety Protocol Breaches',
+        category: 'Corruption-Conflict of interest - Commercial',
         incidentDescription:
             'Synthetic validation report describing a safety protocol concern at a test location.',
         policyReference: 'Synthetic Health and Safety Policy',
@@ -39,13 +23,13 @@ export const FullAnonymousReportData: ReportData = {
         canIdentify: 'Yes',
         persons: [
             {
-                fullName: 'Synthetic Accused Person',
+                fullName: 'Synthetic Alleged Perpetrator',
                 position: 'Synthetic Maintenance Supervisor',
                 company: 'Synthetic Test Company',
                 department: 'Synthetic Operations',
-                email: 'accused.person@example.test',
+                email: 'alleged.perpetrator@example.test',
                 phone: '0500000000',
-                roleInIncident: 'Accused'
+                roleInIncident: 'Alleged Perpetrator'
             },
             {
                 fullName: 'Synthetic Witness',
@@ -66,20 +50,6 @@ export const FullAnonymousReportData: ReportData = {
         ],
     },
 
-    witnesses: {
-        hasWitnesses: 'Yes',
-        witnesses: [
-            {
-                firstName: 'Synthetic',
-                lastName: 'Witness',
-                position: 'Synthetic Safety Specialist',
-                department: 'Synthetic Health and Safety',
-                notes:
-                    'شاهد أعمال الصيانة التي تم تنفيذها داخل المنطقة المحظورة ولاحظ عدم الالتزام بإجراءات السلامة واستخدام معدات الوقاية الشخصية المطلوبة.'
-            }
-        ]
-    },
-
     evidence: {
         hasSupportingEvidence: 'Yes',
         filePaths: ['test-data/files/validevidence.pdf'],
@@ -90,19 +60,38 @@ export const FullAnonymousReportData: ReportData = {
 
     previousReporting: {
         previouslyReported: 'Yes',
+        reportingChannel: 'platform',
         hasSystemReference: 'No',
-        relevantInfo:
-            'تم الإبلاغ سابقًا عن مخالفة إجراءات السلامة، ولكن لم يتم إبلاغي بأي نتيجة نهائية أو إجراء تصحيحي.',
-        firstName: 'Synthetic',
-        lastName: 'Reporter',
-        positionDepartment: 'Synthetic Health and Safety',
-        knowsExactDate: 'No',
-        reportingDate: '2026-08-01',
-        dateDescription: 'أغسطس 2026'
+        reportingDate: '2026-08-01'
     },
 
     declaration: {
         accurateInformation: true,
         confidentialityAcknowledged: true
+    }
+};
+
+export const FullAnonymousAnotherChannelReportData: ReportData = {
+    ...FullAnonymousReportData,
+    previousReporting: {
+        previouslyReported: 'Yes',
+        reportingChannel: 'anotherChannel',
+        reportingChannelType: 'Email',
+        reportedToDepartment: 'Synthetic Compliance',
+        hasSystemReference: 'Yes',
+        referenceNumber: 'SYN1-PRV2-001A',
+        outcomeIfKnown: 'Synthetic review completed with corrective action tracked.',
+        firstName: 'Synthetic Previous',
+        lastName: 'Reporter',
+        positionDepartment: 'Synthetic Compliance',
+        previousReporterCompany: 'Synthetic Previous Company',
+        previousReporterDepartment: 'Synthetic Compliance'
+    }
+};
+
+export const FullAnonymousFirstTimeReportData: ReportData = {
+    ...FullAnonymousReportData,
+    previousReporting: {
+        previouslyReported: 'No'
     }
 };

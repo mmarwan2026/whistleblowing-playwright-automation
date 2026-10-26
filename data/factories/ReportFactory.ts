@@ -1,18 +1,10 @@
-import {
-  ReportData
-} from '../../models/public/ReportData';
+import type { ReportData } from '../../models/public/ReportData';
 
 import {
   ReporterFactory
 } from './ReporterFactory';
 
-import {
-  ClassificationFactory
-} from './ClassificationFactory';
-
-import {
-  AllegationFactory
-} from './AllegationFactory';
+import { ReportDetailsFactory } from './ReportDetailsFactory';
 
 export class ReportFactory {
 
@@ -24,6 +16,7 @@ export class ReportFactory {
   // ==========================================================
 
   static anonymous(): ReportData {
+    const reportDetails = ReportDetailsFactory.default();
 
     return {
 
@@ -34,27 +27,7 @@ export class ReportFactory {
       reporter:
         ReporterFactory.anonymousEmployee(),
 
-      // ------------------------------------------------------
-      // CLASSIFICATION
-      // ------------------------------------------------------
-
-      classification:
-        ClassificationFactory.default(),
-
-      // ------------------------------------------------------
-      // ALLEGATION
-      // ------------------------------------------------------
-
-      allegation:
-        AllegationFactory.default(),
-
-      reportDetails: {
-        category: 'Conflict of Interest-Nepotism/Cronyism',
-        incidentDescription: 'Synthetic factory report for automation validation.',
-        awarenessMethod: 'Synthetic automation validation.',
-        incidentDate: '2026-01-01',
-        ongoing: 'No'
-      },
+      reportDetails,
 
       // ------------------------------------------------------
       // PERSON(S) INVOLVED
@@ -65,14 +38,6 @@ export class ReportFactory {
       },
       entitiesInvolved: {
         canIdentify: 'No',
-      },
-
-      // ------------------------------------------------------
-      // WITNESSES
-      // ------------------------------------------------------
-
-      witnesses: {
-        hasWitnesses: 'No'
       },
 
       // ------------------------------------------------------

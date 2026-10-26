@@ -16,36 +16,18 @@ export const SimilarityBaseReport: ReportData = {
         reporterCategory: 'Employee'
     },
 
-    classification: {
-        internalAuditAnswer: 'No',
-        category: 'Nepotism/Cronyism'
-    },
-
-    allegation: {
-        ...FullAnonymousReportData.allegation,
-
-        incidentTitle:
-            `E2E Safety Similarity ${runId}`,
-
-        whatHappened:
+    reportDetails: {
+        ...FullAnonymousReportData.reportDetails,
+        category: 'Health, Safety & Environment-Safety Protocol Breaches',
+        incidentDescription:
             `Employee performed maintenance work in a restricted area ` +
             `without using the required personal protective equipment. ` +
             `Test ${runId}.`,
-
-        rulePolicyLaw:
-            'Health, Safety & Environment Policy',
-
+        policyReference: 'Health, Safety & Environment Policy',
         awarenessMethod:
             'I became aware of the incident while observing maintenance activities.',
-
-        incidentLocation:
-            'Maintenance Area',
-
-        knowsExactDate: 'No',
-
-        incidentDateDescription:
-            'September 2026',
-
+        location: 'Maintenance Area',
+        incidentDate: '2026-09-01',
         ongoing: 'No'
     },
 
@@ -78,10 +60,6 @@ export const SimilarityBaseReport: ReportData = {
         ]
     },
 
-    witnesses: {
-        hasWitnesses: 'No'
-    },
-
     evidence: {
         hasSupportingEvidence: 'No'
     },
@@ -110,20 +88,8 @@ export const ExactDuplicateReport: ReportData = {
         ...SimilarityBaseReport.reporter
     },
 
-    classification: {
-        ...SimilarityBaseReport.classification
-    },
-
-    allegation: {
-        ...SimilarityBaseReport.allegation
-    },
-
     personsInvolved: {
         ...SimilarityBaseReport.personsInvolved
-    },
-
-    witnesses: {
-        ...SimilarityBaseReport.witnesses
     },
 
     evidence: {
@@ -149,13 +115,10 @@ export const ExactDuplicateReport: ReportData = {
 export const SemanticParaphraseReport: ReportData = {
     ...SimilarityBaseReport,
 
-    allegation: {
-        ...SimilarityBaseReport.allegation,
+    reportDetails: {
+        ...SimilarityBaseReport.reportDetails,
 
-        incidentTitle:
-            `E2E PPE Safety Breach ${runId}`,
-
-        whatHappened:
+        incidentDescription:
             `Maintenance activities were carried out inside a restricted area ` +
             `while the worker was not wearing the mandatory safety equipment. ` +
             `Test ${runId}.`
@@ -227,9 +190,9 @@ export const NoPersonReport: ReportData = {
 export const DifferentClassificationReport: ReportData = {
     ...SimilarityBaseReport,
 
-    classification: {
-        internalAuditAnswer: 'No',
-        category: 'Nepotism/Cronyism'
+    reportDetails: {
+        ...SimilarityBaseReport.reportDetails,
+        category: 'Conflict of Interest-Nepotism/Cronyism'
     },
 };
 
@@ -243,9 +206,9 @@ export const DifferentClassificationReport: ReportData = {
 export const DifferentSubcategoryReport: ReportData = {
     ...SimilarityBaseReport,
 
-    classification: {
-        internalAuditAnswer: 'No',
-        category: 'Nepotism/Cronyism'
+    reportDetails: {
+        ...SimilarityBaseReport.reportDetails,
+        category: 'Financial Fraud-Procurement Fraud'
     }
 };
 
@@ -259,11 +222,10 @@ export const DifferentSubcategoryReport: ReportData = {
 export const DifferentTitleReport: ReportData = {
     ...SimilarityBaseReport,
 
-    allegation: {
-        ...SimilarityBaseReport.allegation,
-
-        incidentTitle:
-            `E2E Completely Different Incident Title ${runId}`
+    reportDetails: {
+        ...SimilarityBaseReport.reportDetails,
+        incidentDescription:
+            `E2E Completely Different Incident Description ${runId}`
     }
 };
 
@@ -277,10 +239,10 @@ export const DifferentTitleReport: ReportData = {
 export const DifferentDescriptionReport: ReportData = {
     ...SimilarityBaseReport,
 
-    allegation: {
-        ...SimilarityBaseReport.allegation,
+    reportDetails: {
+        ...SimilarityBaseReport.reportDetails,
 
-        whatHappened:
+        incidentDescription:
             `A procurement employee reviewed supplier quotations and participated ` +
             `in a commercial evaluation involving an unrelated business process. ` +
             `Controlled AI similarity test ${runId}.`
@@ -808,28 +770,15 @@ export const NoSharedPersonTokensReport: ReportData = {
 export const UnrelatedReport: ReportData = {
     ...SimilarityBaseReport,
 
-    classification: {
-        internalAuditAnswer: 'No',
-        category: 'Nepotism/Cronyism'
-    },
-    allegation: {
-        ...SimilarityBaseReport.allegation,
-
-        incidentTitle:
-            `E2E Conflict of Interest ${runId}`,
-
-        whatHappened:
+    reportDetails: {
+        ...SimilarityBaseReport.reportDetails,
+        category: 'Conflict of Interest-Nepotism/Cronyism',
+        incidentDescription:
             `An employee may have participated in a business decision ` +
             `involving a related party. Test ${runId}.`,
-
-        rulePolicyLaw:
-            'Conflict of Interest Policy',
-
-        awarenessMethod:
-            'I became aware through internal business communication.',
-
-        incidentLocation:
-            'Corporate Office'
+        policyReference: 'Conflict of Interest Policy',
+        awarenessMethod: 'I became aware through internal business communication.',
+        location: 'Corporate Office'
     },
 
     personsInvolved: {

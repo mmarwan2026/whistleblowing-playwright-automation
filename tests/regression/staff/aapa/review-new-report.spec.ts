@@ -5,10 +5,6 @@ import { InitialReviewFlow } from '../../../../flows/staff/InitialReviewFlow';
 test.describe(
   'Staff - Initial Review @regression @staff @aapa',
   () => {
-    const REPORT_ID =
-      process.env.TEST_REPORT_ID ??
-      'REP-567';
-
     test(
       'STAFF-AAPA-001 | HOD can open and review an Under Assessment report',
       async ({ page }) => {
@@ -121,12 +117,11 @@ test.describe(
         // Under Assessment
         // =================================================
 
+        let reportId = '';
         await test.step(
-          `Open ${REPORT_ID} from Under Assessment`,
+          'Open a case from Under Assessment',
           async () => {
-            await flow.openUnderAssessmentReport(
-              REPORT_ID,
-            );
+            reportId = await flow.openFirstUnderAssessmentReport();
           },
         );
 
@@ -136,10 +131,10 @@ test.describe(
         // =================================================
 
         await test.step(
-          `Verify Update Initial Review for ${REPORT_ID}`,
+          `Verify Update Initial Review for ${reportId}`,
           async () => {
             await flow.verifyInitialReview(
-              REPORT_ID,
+              reportId,
             );
           },
         );
@@ -193,7 +188,7 @@ test.describe(
               flow.initialReview
                 .taskContainer,
             ).toContainText(
-              REPORT_ID,
+              reportId,
             );
 
             await expect(
@@ -230,7 +225,7 @@ test.describe(
             '========================================',
             'STAFF-AAPA-001 RESULT',
             '========================================',
-            `Report: ${REPORT_ID}`,
+            `Report: ${reportId}`,
             'Login: PASSED',
             'Operational Dashboard: PASSED',
             'Under Assessment: PASSED',

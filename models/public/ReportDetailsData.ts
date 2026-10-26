@@ -1,3 +1,7 @@
+export type ExactDateAnswer = 'Yes' | 'No';
+export type OngoingAnswer = 'Yes' | 'No' | 'Unknown';
+
+/** Data captured by the current public Report Details step. */
 export interface ReportDetailsData {
   category: string;
   incidentDescription: string;
@@ -5,5 +9,5 @@ export interface ReportDetailsData {
   awarenessMethod: string;
   location?: string;
   incidentDate: string;
-  ongoing: 'Yes' | 'No' | 'Unknown';
+  ongoing: OngoingAnswer;
 }

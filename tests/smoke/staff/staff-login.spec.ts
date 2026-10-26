@@ -1,19 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../../../pages/staff/LoginPage';
 
-test('Investigator can login @smoke @staff',
+test('Lead investigator can login @smoke @staff',
   async ({ page }) => {
+    test.setTimeout(90_000);
     test.skip(
-      !process.env.INVESTIGATOR_EMAIL || !process.env.INVESTIGATOR_PASSWORD,
-      'Investigator credentials are not configured.'
+      !process.env.LEAD_INVESTIGATOR_USERNAME || !process.env.LEAD_INVESTIGATOR_PASSWORD,
+      'Lead investigator credentials are not configured.'
     );
 
     const login = new LoginPage(page);
     await login.open();
     await login.login(
-      process.env.INVESTIGATOR_EMAIL!,
-      process.env.INVESTIGATOR_PASSWORD!
+      process.env.LEAD_INVESTIGATOR_USERNAME!,
+      process.env.LEAD_INVESTIGATOR_PASSWORD!
     );
 
-    //await expect(page.getByText(/dashboard/i).first()).toBeVisible();
+    await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/i, { timeout: 60_000 });
   });

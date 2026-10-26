@@ -65,6 +65,47 @@ test.describe('Public reporting Page Objects', () => {
     await casePage.expectSecureMailboxVisible();
   });
 
+  test('FollowUpCasePage verifies submitted data in the report view', async ({ page }) => {
+    await page.setContent(`
+      <h1>Your Report</h1>
+      <p>Credentials accepted. Review the status below.</p>
+      <p>Reference Number</p>
+      <p>Ab12-cD34-Ef56</p>
+      <p>Submitted</p>
+      <button type="button" onclick="document.body.insertAdjacentHTML('beforeend', '<section id=report-view><p>Synthetic Category</p><p>Synthetic incident description</p><p>Synthetic observation</p><p>Synthetic Test Site</p><p>2026-09-01</p><p>No</p><p>Synthetic Witness</p><p>Safety Specialist</p><p>Synthetic Test Company</p></section>')">View Report</button>
+      <button type="button">Mailbox</button>
+      <button type="button">Attachments History</button>
+      <h2>Secure Mailbox</h2>
+    `);
+
+    const casePage = new FollowUpCasePage(page);
+
+    await casePage.expectSubmittedReport({
+      reporter: {
+        identityType: 'anonymous'
+      },
+      reportDetails: {
+        category: 'Synthetic Category',
+        incidentDescription: 'Synthetic incident description',
+        awarenessMethod: 'Synthetic observation',
+        location: 'Synthetic Test Site',
+        incidentDate: '2026-09-01',
+        ongoing: 'No'
+      },
+      personsInvolved: {
+        canIdentify: 'No',
+        persons: [{
+          fullName: 'Synthetic Witness',
+          position: 'Safety Specialist',
+          company: 'Synthetic Test Company'
+        }]
+      },
+      entitiesInvolved: { canIdentify: 'No' },
+      evidence: { hasSupportingEvidence: 'No' },
+      previousReporting: { previouslyReported: 'No' }
+    });
+  });
+
   test('SubmissionSuccessPage reads the generated reference number and access code', async ({ page }) => {
     await page.setContent(`
       <h1>Thank You</h1>
@@ -101,8 +142,8 @@ test.describe('Public reporting Page Objects', () => {
     const declaration = new DeclarationStep(page);
 
     await declaration.verifyLoaded();
-    await declaration.acceptAllAcknowledgements();
-    await declaration.verifyBothAcknowledgementsChecked();
+    await declaration.acceptAcknowledgement();
+    await declaration.verifyAcknowledgementChecked();
     await declaration.verifySubmitEnabled();
   });
 });

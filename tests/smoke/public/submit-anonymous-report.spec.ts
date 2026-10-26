@@ -5,7 +5,7 @@ import { ReportFactory } from '../../../data/factories/ReportFactory';
 test('Submit anonymous report @smoke @public @intake',
 async ({ page }) => {
   const result = await new AnonymousReportFlow(page)
-    .submit(ReportFactory.anonymous());
+    .submit(ReportFactory.anonymous(), 'SMOKE-ANONYMOUS');
 
   expect(result.referenceNumber).toBeTruthy();
   expect(result.pin).toBeTruthy();

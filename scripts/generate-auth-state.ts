@@ -3,7 +3,7 @@ import { LoginPage } from '../pages/staff/LoginPage';
 
 const accounts = [
   ['investigator', 'INVESTIGATOR_EMAIL', 'INVESTIGATOR_PASSWORD'],
-  ['lead-investigator', 'LEAD_INVESTIGATOR_EMAIL', 'LEAD_INVESTIGATOR_PASSWORD'],
+  ['lead-investigator', 'LEAD_INVESTIGATOR_USERNAME', 'LEAD_INVESTIGATOR_PASSWORD'],
   ['hod', 'HOD_EMAIL', 'HOD_PASSWORD'],
   ['gciao', 'GCIAO_EMAIL', 'GCIAO_PASSWORD'],
   ['grc', 'GRC_EMAIL', 'GRC_PASSWORD'],

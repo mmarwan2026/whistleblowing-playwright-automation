@@ -6,11 +6,7 @@ import { InitialReviewFlow } from '../../../../flows/staff/InitialReviewFlow';
 
 
 
-const REPORT_ID =
-
-    process.env.TEST_REPORT_ID ??
-
-    'REP-567';
+let REPORT_ID = '';
 
 
 
@@ -1839,7 +1835,6 @@ test.describe(
     'Staff - Complete Initial Review @e2e @staff @aapa',
 
     () => {
-
         test(
 
             'STAFF-AAPA-E2E-001 | HOD completes Initial Review and workflow moves to next state',
@@ -2080,13 +2075,7 @@ test.describe(
 
                     async () => {
 
-                        await flow
-
-                            .openUnderAssessmentReport(
-
-                                REPORT_ID,
-
-                            );
+                        REPORT_ID = await flow.openFirstUnderAssessmentReport();
 
                     },
 

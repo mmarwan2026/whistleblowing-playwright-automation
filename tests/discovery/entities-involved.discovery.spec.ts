@@ -47,47 +47,26 @@ test(
 
 
         // ============================================================
-        // CLASSIFICATION
+        // REPORT DETAILS
         // ============================================================
 
-        await submit.classification.verifyLoaded();
+        await submit.reportDetails.verifyLoaded();
 
-        await submit.classification
-            .selectInternalAuditAnswer('No');
-
-        await submit.classification
-            .selectCategory('Nepotism/Cronyism');
-
-        await submit.classification.next();
-
-
-        // ============================================================
-        // ALLEGATION
-        // ============================================================
-
-        await submit.allegation.verifyLoaded();
-
-        await submit.allegation.fill({
-            incidentTitle:
-                'Entities discovery test',
-
-            whatHappened:
+        await submit.reportDetails.fill({
+            category: 'Conflict of Interest-Nepotism/Cronyism',
+            incidentDescription:
                 'This report is used to inspect the Entities Involved user interface.',
 
             awarenessMethod:
                 'Internal business communication',
 
-            knowsExactDate:
-                'No',
-
-            incidentDateDescription:
-                'September 2026',
+            incidentDate: '2026-09-15',
 
             ongoing:
                 'No'
         });
 
-        await submit.allegation.next();
+        await submit.reportDetails.next();
 
 
         // ============================================================
@@ -114,15 +93,8 @@ test(
         ).toBeVisible();
 
 
-        // Select YES so the entity table becomes visible.
-
-        await page.getByRole(
-            'radio',
-            {
-                name: 'Yes',
-                exact: true
-            }
-        ).check();
+        // The current UI shows the table by default; this checkbox hides it.
+        await submit.entitiesInvolved.selectCanIdentify('Yes');
 
 
         // ============================================================

@@ -1,9 +1,10 @@
 export type PersonRoleInIncident =
-  | 'Accused'
   | 'Victim'
   | 'Reporter'
   | 'Alleged Perpetrator'
   | 'Witness';
+
+export type CanIdentifyPerson = 'Yes' | 'No';
 
 
 export interface InvolvedPerson {
@@ -20,9 +21,7 @@ export interface InvolvedPerson {
 
 
 export interface PersonInvolvedData {
-  canIdentify:
-  | 'Yes'
-  | 'No';
+  canIdentify: CanIdentifyPerson;
 
   persons?: InvolvedPerson[];
 }

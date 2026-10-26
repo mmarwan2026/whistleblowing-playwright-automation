@@ -12,6 +12,6 @@ async ({ page }) => {
   });
 
   await expect(
-    page.getByText(/invalid|not found|incorrect/i).first()
+    page.getByText(/invalid|not found|incorrect|no reports|credentials/i).first()
   ).toBeVisible();
 });

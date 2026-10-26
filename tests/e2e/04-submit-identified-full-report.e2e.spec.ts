@@ -1,15 +1,27 @@
 import { expect, test } from '@playwright/test';
 
-import { FullIdentifiedReportData } from '../../data/e2e/FullIdentifiedReportData';
+import {
+  FullIdentifiedAnotherChannelReportData,
+  FullIdentifiedFirstTimeReportData,
+  FullIdentifiedReportData
+} from '../../data/e2e/FullIdentifiedReportData';
+import { FollowUpFlow } from '../../flows/public/FollowUpFlow';
 import { ReportingNoticePage } from '../../pages/public/ReportingNoticePage';
 import { SubmitReportPage } from '../../pages/public/submit-report/SubmitReportPage';
 import { submitAndValidate } from '../../helpers/public/submitReportAssertions';
 
 test.describe('Identified Full Report Submission - E2E', () => {
-  test('E2E-008 | Identified reporter submits full report with persons, entities, previous reporting and evidence @e2e @public @intake', async ({ page }) => {
+  const scenarios = [
+    { name: 'platform reporting', testId: 'E2E-008', data: FullIdentifiedReportData },
+    { name: 'another reporting channel', testId: 'E2E-009', data: FullIdentifiedAnotherChannelReportData },
+    { name: 'first-time reporting', testId: 'E2E-011', data: FullIdentifiedFirstTimeReportData }
+  ];
+
+  for (const scenario of scenarios) {
+    test(`${scenario.testId} | Identified reporter submits full report with ${scenario.name} @e2e @public @intake`, async ({ page, browser }) => {
     const submit = new SubmitReportPage(page);
     const notice = new ReportingNoticePage(page);
-    const data = FullIdentifiedReportData;
+    const data = scenario.data;
   
     await submit.open();
     await notice.verifyLoaded();
@@ -45,10 +57,25 @@ test.describe('Identified Full Report Submission - E2E', () => {
     await submit.evidence.next();
   
     await submit.declaration.verifyLoaded();
-    await submit.declaration.acceptAllAcknowledgements();
-    await submit.declaration.verifyBothAcknowledgementsChecked();
+    await submit.declaration.acceptAcknowledgement();
+    await submit.declaration.verifyAcknowledgementChecked();
   
-    const result = await submitAndValidate(page, submit, 'E2E-008');
+    const result = await submitAndValidate(page, submit, scenario.testId);
     expect(result.pin, 'Identified report should generate a follow-up access code').toBeTruthy();
-  });
+
+    const followUpContext = await browser.newContext();
+    try {
+      const followUpPage = await followUpContext.newPage();
+      const followUp = new FollowUpFlow(followUpPage);
+
+      await followUp.accessCase({
+        referenceNumber: result.reference,
+        pin: result.pin
+      });
+      await followUp.casePage.expectSubmittedReport(data);
+    } finally {
+      await followUpContext.close();
+    }
+    });
+  }
 });

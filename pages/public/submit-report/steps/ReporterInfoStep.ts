@@ -66,6 +66,22 @@ export class ReporterInfoStep {
     ] as const) {
       await this.page.getByRole('textbox', { name: new RegExp(`^${label}$`, 'i') }).fill(value!);
     }
+
+    if (data.mobile) {
+      const mobileChannel = this.page.getByRole('checkbox', { name: 'Mobile', exact: true });
+      await mobileChannel.check();
+
+      const countryCode = data.mobileCountryCode ?? data.mobile.match(/^\+(\d{3})/)?.[0];
+      if (countryCode) {
+        await this.page.getByRole('combobox', { name: 'Country Code', exact: true })
+          .selectOption({ label: countryCode });
+      }
+    }
+
+    if (data.email) {
+      const emailChannel = this.page.getByRole('checkbox', { name: 'Email', exact: true });
+      await emailChannel.check();
+    }
   }
 
   async fill(data: ReporterInfoData): Promise<void> {

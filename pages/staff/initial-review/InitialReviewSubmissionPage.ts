@@ -17,9 +17,7 @@ export class InitialReviewSubmissionPage {
     constructor(page: Page) {
         this.page = page;
 
-        this.taskContainer = page.locator(
-            '.task-edit-dialog--full-page',
-        );
+        this.taskContainer = page.locator('.task-edit-dialog');
 
         /**
          * Confirmed actual DOM:

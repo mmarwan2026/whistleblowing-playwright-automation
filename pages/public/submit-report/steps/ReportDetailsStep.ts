@@ -43,6 +43,10 @@ export class ReportDetailsStep {
   }
 
   async fill(data: ReportDetailsData): Promise<void> {
+    await expect(
+      this.category().locator('option').filter({ hasText: data.category })
+    ).toHaveCount(1, { timeout: 30000 });
+
     await this.category().selectOption({ label: data.category });
     await this.incidentDescription().fill(data.incidentDescription);
     if (data.policyReference) await this.policyReference().fill(data.policyReference);

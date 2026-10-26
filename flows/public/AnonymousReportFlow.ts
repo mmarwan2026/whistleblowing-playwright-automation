@@ -48,7 +48,8 @@ export class AnonymousReportFlow {
   // ==========================================================
 
   async submit(
-    report: ReportData
+    report: ReportData,
+    testId = 'E2E-004'
   ): Promise<SubmissionResult> {
 
     // ========================================================
@@ -90,22 +91,12 @@ export class AnonymousReportFlow {
 
     await this.submitPage.reportDetails.verifyLoaded();
 
-    const reportDetails = report.reportDetails ?? {
-      category: `Conflict of Interest-${report.classification.category}`,
-      incidentDescription: report.allegation.whatHappened,
-      policyReference: report.allegation.rulePolicyLaw,
-      awarenessMethod: report.allegation.awarenessMethod,
-      location: report.allegation.incidentLocation,
-      incidentDate: report.allegation.incidentDate ?? '2026-01-01',
-      ongoing: report.allegation.ongoing ?? 'Unknown'
-    };
-
-    await this.submitPage.reportDetails.fill(reportDetails);
+    await this.submitPage.reportDetails.fill(report.reportDetails);
     await this.submitPage.reportDetails.next();
 
 
     // ========================================================
-    // STEP 4 - PERSON(S) INVOLVED
+    // STEP 3 - PERSON(S) INVOLVED
     // ========================================================
 
     await this.submitPage
@@ -124,7 +115,7 @@ export class AnonymousReportFlow {
 
 
     // ========================================================
-    // STEP 5 - ENTITIES INVOLVED
+    // STEP 4 - ENTITIES INVOLVED
     // ========================================================
 
     await this.submitPage.entitiesInvolved
@@ -140,7 +131,7 @@ export class AnonymousReportFlow {
 
 
     // ========================================================
-    // STEP 7 - PREVIOUS REPORTING
+    // STEP 5 - PREVIOUS REPORTING
     // ========================================================
 
     await this.submitPage
@@ -159,7 +150,7 @@ export class AnonymousReportFlow {
 
 
     // ========================================================
-    // STEP 8 - EVIDENCE
+    // STEP 6 - EVIDENCE
     // ========================================================
 
     await this.submitPage
@@ -178,7 +169,7 @@ export class AnonymousReportFlow {
 
 
     // ========================================================
-    // STEP 9 - DECLARATION
+    // DECLARATION
     // ========================================================
 
     await this.submitPage
@@ -191,19 +182,19 @@ export class AnonymousReportFlow {
 
 
     // ========================================================
-    // STEP 10 - SUBMIT + VALIDATE
+    // SUBMIT + VALIDATE
     // ========================================================
 
     const result =
       await submitAndValidate(
         this.page,
         this.submitPage,
-        'E2E-004'
+        testId
       );
 
 
     // ========================================================
-    // STEP 11 - ANONYMOUS ACCESS CREDENTIAL VALIDATION
+    // ANONYMOUS ACCESS CREDENTIAL VALIDATION
     // ========================================================
 
     const referenceNumber =
@@ -258,6 +249,6 @@ export class AnonymousReportFlow {
 
     await this.submitPage
       .declaration
-      .acceptAllAcknowledgements();
+       .acceptAcknowledgement();
   }
 }

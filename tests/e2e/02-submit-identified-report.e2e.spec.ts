@@ -119,9 +119,9 @@ test.describe('Identified Report Submission - E2E', () => {
 
       await submit.declaration.verifyLoaded();
 
-      await submit.declaration.acceptAllAcknowledgements();
+      await submit.declaration.acceptAcknowledgement();
 
-      await submit.declaration.verifyBothAcknowledgementsChecked();
+      await submit.declaration.verifyAcknowledgementChecked();
 
 
       // ============================================================

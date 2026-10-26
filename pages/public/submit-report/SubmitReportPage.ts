@@ -1,25 +1,19 @@
 import { Page } from '@playwright/test';
-import { Routes } from '../../../config/urls';
+import { resolveRoute, Routes } from '../../../config/urls';
 
 import { ReporterInfoStep } from './steps/ReporterInfoStep';
-import { ClassificationStep } from './steps/ClassificationStep';
-import { AllegationStep } from './steps/AllegationStep';
 import { ReportDetailsStep } from './steps/ReportDetailsStep';
 import { PersonsInvolvedStep } from './steps/PersonsInvolvedStep';
 import { EntitiesInvolvedStep } from './steps/EntitiesInvolvedStep';
-import { WitnessesStep } from './steps/WitnessesStep';
 import { PreviousReportingStep } from './steps/PreviousReportingStep';
 import { EvidenceStep } from './steps/EvidenceStep';
 import { DeclarationStep } from './steps/DeclarationStep';
 
 export class SubmitReportPage {
   readonly reporterInfo: ReporterInfoStep;
-  readonly classification: ClassificationStep;
-  readonly allegation: AllegationStep;
   readonly reportDetails: ReportDetailsStep;
   readonly personsInvolved: PersonsInvolvedStep;
   readonly entitiesInvolved: EntitiesInvolvedStep;
-  readonly witnesses: WitnessesStep;
   readonly previousReporting: PreviousReportingStep;
   readonly evidence: EvidenceStep;
   readonly declaration: DeclarationStep;
@@ -27,12 +21,6 @@ export class SubmitReportPage {
   constructor(private readonly page: Page) {
     this.reporterInfo =
       new ReporterInfoStep(page);
-
-    this.classification =
-      new ClassificationStep(page);
-
-    this.allegation =
-      new AllegationStep(page);
 
     this.reportDetails =
       new ReportDetailsStep(page);
@@ -42,9 +30,6 @@ export class SubmitReportPage {
 
     this.entitiesInvolved =
       new EntitiesInvolvedStep(page);
-
-    this.witnesses =
-      new WitnessesStep(page);
 
     this.previousReporting =
       new PreviousReportingStep(page);
@@ -57,8 +42,7 @@ export class SubmitReportPage {
   }
 
   async open(): Promise<void> {
-    await this.page.goto(
-      Routes.public.submitReport
-    );
+    await this.page.goto(resolveRoute(Routes.public.home));
+    await this.page.locator(`a[href$="${Routes.public.submitReport}"]`).first().click();
   }
 }

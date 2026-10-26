@@ -23,9 +23,7 @@ export class InitialReviewPage {
          * Open Task does not navigate to another URL.
          * It opens a full-page task overlay inside the SPA.
          */
-        this.taskContainer = page.locator(
-            '.task-edit-dialog--full-page',
-        );
+        this.taskContainer = page.locator('.task-edit-dialog');
 
         this.reportDetailsButton =
             this.taskContainer.getByRole(

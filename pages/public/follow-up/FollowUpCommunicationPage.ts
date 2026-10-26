@@ -21,10 +21,9 @@ export class FollowUpCommunicationPage {
     message: FollowUpMessage
   ): Promise<void> {
 
-    const messageInput =
-      this.page
-        .getByRole('textbox')
-        .last();
+    const messageInput = this.page
+      .frameLocator('#yourmessage iframe')
+      .locator('body[contenteditable="true"]');
 
     await expect(
       messageInput
@@ -33,6 +32,9 @@ export class FollowUpCommunicationPage {
     await messageInput.fill(
       message.text
     );
+
+    // TinyMCE publishes its value to the form when the editor loses focus.
+    await messageInput.press('Tab');
 
     // --------------------------------------------------------
     // OPTIONAL ATTACHMENT
@@ -54,13 +56,10 @@ export class FollowUpCommunicationPage {
     // SEND
     // --------------------------------------------------------
 
-    const sendButton =
-      this.page.getByRole(
-        'button',
-        {
-          name: /send/i
-        }
-      );
+    const sendButton = this.page.getByRole('button', {
+      name: 'Send Message',
+      exact: true
+    });
 
     await expect(
       sendButton
@@ -82,12 +81,7 @@ export class FollowUpCommunicationPage {
   ): Promise<void> {
 
     await expect(
-      this.page.getByText(
-        text,
-        {
-          exact: false
-        }
-      )
+      this.page.getByText(text, { exact: true })
     ).toBeVisible();
   }
 }

@@ -42,6 +42,10 @@ export async function submitAndValidate(
     `${testId}: report reference must be generated`
   ).toMatch(/^[A-Za-z0-9]{4}(?:-[A-Za-z0-9]{4}){2}$/);
 
+  console.log(`\n[${testId}] Submission credentials`);
+  console.log(`Reference Number: ${body.data.reference}`);
+  console.log(`Access Code: ${body.data.pin ?? '<not returned>'}`);
+
   await expect(
     page.getByRole('heading', {
       name: 'Declaration',
@@ -56,8 +60,6 @@ export async function submitAndValidate(
     )
   ).toBeHidden();
 
-  console.log(`${testId} Report Reference:`, body.data.reference);
-  console.log(`${testId} Report Pin:`, body.data.pin);
   return {
     reference: body.data.reference,
     pin: body.data.pin

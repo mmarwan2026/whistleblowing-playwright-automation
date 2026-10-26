@@ -92,10 +92,12 @@ export class EvidenceStep {
     fileName: string
   ): Locator {
 
+    const displayedFileName = this.normalizeDisplayedFileName(fileName);
+
     return this.page
       .getByRole('row')
       .filter({
-        hasText: fileName
+        hasText: displayedFileName
       });
   }
 
@@ -160,6 +162,8 @@ export class EvidenceStep {
     fileName: string
   ): Promise<void> {
 
+    const displayedFileName = this.normalizeDisplayedFileName(fileName);
+
     const fileItem =
       this.getFileItem(
         fileName
@@ -171,7 +175,7 @@ export class EvidenceStep {
 
     await expect(
       fileItem.getByText(
-        fileName,
+        displayedFileName,
         {
           exact: true
         }

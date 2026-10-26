@@ -1,6 +1,12 @@
-import { ReportData } from '../../models/public/ReportData';
+import type { SubmissionReportData } from './SubmissionReportData';
 
-export const FullIdentifiedReportData: ReportData = {
+const e2eReporterEmail = process.env.E2E_REPORTER_EMAIL;
+
+if (!e2eReporterEmail) {
+  throw new Error('E2E_REPORTER_EMAIL must be set to a real QA mailbox before running identified-report tests.');
+}
+
+export const FullIdentifiedReportData: SubmissionReportData = {
   reporter: {
     identityType: 'identified',
     firstName: 'Synthetic',
@@ -9,27 +15,11 @@ export const FullIdentifiedReportData: ReportData = {
     department: 'Synthetic Quality Assurance',
     position: 'Synthetic QA Engineer',
     mobile: '+966500000001',
-    email: 'mmarwan@ntgclarity.com'
-  },
-  classification: {
-    internalAuditAnswer: 'No',
-    category: 'Nepotism/Cronyism',
-  },
-  allegation: {
-    incidentTitle: 'Synthetic safety protocol concern',
-    whatHappened:
-      'Synthetic test data describes a safety protocol concern at a synthetic location.',
-    rulePolicyLaw:
-      'Synthetic Health and Safety Policy',
-    awarenessMethod:
-      'Observed during synthetic automation validation.',
-    incidentLocation: 'Synthetic Test Site',
-    knowsExactDate: 'No',
-    incidentDateDescription: 'September 2026',
-    ongoing: 'No'
+    mobileCountryCode: '+966',
+    email: e2eReporterEmail
   },
   reportDetails: {
-    category: 'Health, Safety & Environment-Safety Protocol Breaches',
+    category: 'Corruption-Conflict of interest - Commercial',
     incidentDescription: 'Synthetic test data describes a safety protocol concern at a synthetic location.',
     policyReference: 'Synthetic Health and Safety Policy',
     awarenessMethod: 'Observed during synthetic automation validation.',
@@ -58,17 +48,6 @@ export const FullIdentifiedReportData: ReportData = {
       },
     ],
   },
-  witnesses: {
-    hasWitnesses: 'Yes',
-    witnesses: [{
-      firstName: 'Synthetic',
-      lastName: 'Witness',
-      position: 'Synthetic Safety Specialist',
-      department: 'Synthetic Health and Safety',
-      notes:
-        'Synthetic witness notes for automation validation.'
-    }]
-  },
   evidence: {
     hasSupportingEvidence: 'Yes',
     filePaths: ['test-data/files/validevidence.pdf'],
@@ -76,16 +55,33 @@ export const FullIdentifiedReportData: ReportData = {
   },
   previousReporting: {
     previouslyReported: 'Yes',
+    reportingChannel: 'platform',
     hasSystemReference: 'No',
-    relevantInfo: 'Synthetic previous-reporting information.',
-    firstName: 'Synthetic',
-    lastName: 'Previous Reporter',
-    positionDepartment: 'Synthetic Health and Safety',
-    knowsExactDate: 'No',
-    dateDescription: 'August 2026'
-  },
-  declaration: {
-    accurateInformation: true,
-    confidentialityAcknowledged: true
+    reportingDate: '2026-08-01'
+  }
+};
+
+export const FullIdentifiedAnotherChannelReportData: SubmissionReportData = {
+  ...FullIdentifiedReportData,
+  previousReporting: {
+    previouslyReported: 'Yes',
+    reportingChannel: 'anotherChannel',
+    reportingChannelType: 'Email',
+    reportedToDepartment: 'Synthetic Compliance',
+    hasSystemReference: 'Yes',
+    referenceNumber: 'SYN1-PRV2-001A',
+    outcomeIfKnown: 'Synthetic review completed with corrective action tracked.',
+    firstName: 'Synthetic Previous',
+    lastName: 'Reporter',
+    positionDepartment: 'Synthetic Compliance',
+    previousReporterCompany: 'Synthetic Previous Company',
+    previousReporterDepartment: 'Synthetic Compliance'
+  }
+};
+
+export const FullIdentifiedFirstTimeReportData: SubmissionReportData = {
+  ...FullIdentifiedReportData,
+  previousReporting: {
+    previouslyReported: 'No'
   }
 };

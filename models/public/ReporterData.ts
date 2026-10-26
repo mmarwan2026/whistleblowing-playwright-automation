@@ -1,8 +1,9 @@
+export type ReporterIdentityType = 'anonymous' | 'identified';
+
+/** Reporter data captured on Reporter Information. */
 export interface ReporterInfoData {
 
-  identityType:
-  | 'anonymous'
-  | 'identified';
+  identityType: ReporterIdentityType;
 
   // Anonymous Reporter
 
@@ -21,6 +22,8 @@ export interface ReporterInfoData {
   position?: string;
 
   mobile?: string;
+
+  mobileCountryCode?: string;
 
   email?: string;
 }

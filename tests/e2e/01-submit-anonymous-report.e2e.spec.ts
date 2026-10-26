@@ -79,7 +79,7 @@ test.describe(
 
 
         // =====================================================
-        // STEP 4
+        // STEP 3
         // PERSON(S) INVOLVED
         // =====================================================
 
@@ -93,7 +93,7 @@ test.describe(
 
 
         // =====================================================
-        // STEP 5
+        // STEP 4
         // ENTITIES INVOLVED
         // =====================================================
 
@@ -107,21 +107,7 @@ test.describe(
 
 
         // =====================================================
-        // STEP 6
-        // WITNESSES
-        // =====================================================
-
-        await submit.witnesses.verifyLoaded();
-
-        await submit.witnesses.fill(
-          data.witnesses
-        );
-
-        await submit.witnesses.next();
-
-
-        // =====================================================
-        // STEP 7
+        // STEP 5
         // PREVIOUS REPORTING
         // =====================================================
 
@@ -135,7 +121,7 @@ test.describe(
 
 
         // =====================================================
-        // STEP 8
+        // STEP 6
         // EVIDENCE
         // =====================================================
 
@@ -149,21 +135,21 @@ test.describe(
 
 
         // =====================================================
-        // STEP 9
+        // FINAL ACKNOWLEDGEMENT
         // DECLARATION
         // =====================================================
 
         await submit.declaration.verifyLoaded();
 
         await submit.declaration
-          .acceptAllAcknowledgements();
+          .acceptAcknowledgement();
 
         await submit.declaration
-          .verifyBothAcknowledgementsChecked();
+          .verifyAcknowledgementChecked();
 
 
         // =====================================================
-        // STEP 10
+        // SUBMISSION
         // SUBMIT + VALIDATE
         // =====================================================
 

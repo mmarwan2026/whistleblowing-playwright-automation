@@ -3,24 +3,12 @@ import {
 } from './ReporterData';
 
 import {
-  ClassificationData
-} from './ClassificationData';
-
-import {
-  AllegationData
-} from './AllegationData';
-
-import {
   PersonInvolvedData
 } from './PersonInvolvedData';
 
 import {
   EntitiesInvolvedData
 } from './EntitiesInvolvedData';
-
-import {
-  WitnessData
-} from './WitnessData';
 
 import {
   EvidenceData
@@ -44,24 +32,16 @@ export interface ReportData {
   reporter:
   ReporterInfoData;
 
-  classification:
-  ClassificationData;
-
-  allegation:
-  AllegationData;
-
-  reportDetails?:
+  /** Canonical data shape for the current public Report Details UI. */
+  reportDetails:
   ReportDetailsData;
 
   personsInvolved:
   PersonInvolvedData;
 
-  // Step 5 - Entities Involved
+  // Current UI step 4 - Entities Involved
   entitiesInvolved:
   EntitiesInvolvedData;
-
-  witnesses:
-  WitnessData;
 
   evidence:
   EvidenceData;

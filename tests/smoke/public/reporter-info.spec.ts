@@ -97,10 +97,10 @@ test(
     await submit.reporterInfo.fill({
       identityType: 'identified',
 
-      firstName: 'Ahmed',
-      lastName: 'Ali',
+      firstName: 'Synthetic',
+      lastName: 'Reporter',
 
-      company: 'Red Sea Global',
+      company: 'Synthetic Test Company',
 
       department:
         'Quality Assurance',
@@ -346,12 +346,12 @@ test(
 
 
 // ============================================================
-// TC-007
-// Identified Reporter Mandatory Fields Discovery
+// TC-006A
+// Identified Reporter Mandatory Fields
 // ============================================================
 
 test(
-  'TC-007 | Identified reporter mandatory fields discovery @regression @validation @diagnostic',
+  'TC-006A | Identified reporter requires mandatory fields @regression @validation @public @intake',
   async ({ page }) => {
 
     const submit =
@@ -394,57 +394,8 @@ test(
     // Find invalid fields
     // --------------------------------------------------------
 
-    const invalidFields =
-      page.locator(
-        '[aria-invalid="true"]'
-      );
-
-    const count =
-      await invalidFields.count();
-
-    console.log(
-      `\nIdentified mandatory field candidates: ${count}`
-    );
-
-    for (
-      let index = 0;
-      index < count;
-      index++
-    ) {
-
-      const field =
-        invalidFields.nth(index);
-
-      console.log({
-        index:
-          index + 1,
-
-        name:
-          await field.getAttribute(
-            'name'
-          ),
-
-        id:
-          await field.getAttribute(
-            'id'
-          ),
-
-        type:
-          await field.getAttribute(
-            'type'
-          ),
-
-        placeholder:
-          await field.getAttribute(
-            'placeholder'
-          ),
-
-        ariaLabel:
-          await field.getAttribute(
-            'aria-label'
-          )
-      });
-    }
+    await expect.poll(() => page.locator('[aria-invalid="true"]').count())
+      .toBeGreaterThan(0);
   }
 );
 

@@ -37,21 +37,26 @@ export class PersonsInvolvedStep {
       if (value) await this.input(row, label, index).fill(value);
     }
     if (person.roleInIncident) {
-      await row.getByRole('combobox', { name: `Role In Incident ${index + 1}`, exact: true }).selectOption({ label: person.roleInIncident === 'Accused' ? 'Alleged Perpetrator' : person.roleInIncident });
+      await row.getByRole('combobox', { name: `Role In Incident ${index + 1}`, exact: true }).selectOption({ label: person.roleInIncident });
     }
   }
 
   async addPerson(): Promise<void> { await this.addButton().click(); }
   async removePerson(_index: number): Promise<void> { throw new Error('Person removal control is not exposed in the current UI.'); }
-  async getPersonCount(): Promise<number> { return Math.max(0, (await this.table().getByRole('row').count()) - 1); }
+  async getPersonCount(): Promise<number> {
+    const names = await this.table().getByRole('textbox', { name: /^Full Name \d+$/ }).all();
+    const values = await Promise.all(names.map(name => name.inputValue()));
+    return values.filter(value => value.trim() !== '').length;
+  }
   async verifyPerson(_person: InvolvedPerson, _index = 0): Promise<void> { await expect(this.row(_index)).toBeVisible(); }
 
   async fill(data: PersonInvolvedData): Promise<void> {
     await this.selectCanIdentify(data.canIdentify);
     if (data.canIdentify === 'Yes' && data.persons) {
       for (let i = 0; i < data.persons.length; i++) {
-        if (i > 0) await this.addPerson();
         await this.fillPerson(data.persons[i], i);
+        await this.addPerson();
+        await expect(this.table().getByRole('row')).toHaveCount(i + 3);
       }
     }
   }

@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { InitialReviewFlow } from '../../../../flows/staff/InitialReviewFlow';
 
-const REPORT_ID =
-    process.env.TEST_REPORT_ID ??
-    'REP-567';
 const USERNAME =
     process.env.STAFF_USERNAME;
 
@@ -21,6 +18,7 @@ test.describe(
         test(
             'STAFF-AAPA-E2E-002 | Verify persisted state after assigning Lead Investigator',
             async ({ page }) => {
+                let reportId = '';
                 const flow =
                     new InitialReviewFlow(page);
 
@@ -151,18 +149,19 @@ test.describe(
                         await flow.dashboard.verifyLoaded();
 
                         await flow.dashboard.openUnderAssessment();
+                        reportId = await flow.dashboard.discoverFirstUnderAssessmentReportId();
 
                         await flow.dashboard.verifyReportVisible(
-                            REPORT_ID,
+                            reportId,
                         );
 
                         await flow.dashboard.verifyReportStatus(
-                            REPORT_ID,
+                            reportId,
                             'Under Assessment',
                         );
 
                         await flow.dashboard.openReportTask(
-                            REPORT_ID,
+                            reportId,
                         );
                     },
                 );
@@ -195,7 +194,7 @@ test.describe(
                             '========================================',
                         );
                         console.log(
-                            `Report: ${REPORT_ID}`,
+                            `Report: ${reportId}`,
                         );
                         console.log(
                             `URL: ${page.url()}`,
@@ -283,7 +282,7 @@ test.describe(
                                 console.log(
                                     '========================================',
                                 );
-                                console.log(`Report: ${REPORT_ID}`);
+                                console.log(`Report: ${reportId}`);
                                 console.log(
                                     'Persisted Task: Initial Review',
                                 );

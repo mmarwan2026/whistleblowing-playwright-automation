@@ -2,20 +2,44 @@ import { test, expect } from '@playwright/test';
 
 import { SubmitReportPage } from '../../pages/public/submit-report/SubmitReportPage';
 import { ReportingNoticePage } from '../../pages/public/ReportingNoticePage';
-import { FullAnonymousReportData } from '../../data/e2e/FullAnonymousReportData';
+import {
+    FullAnonymousAnotherChannelReportData,
+    FullAnonymousFirstTimeReportData,
+    FullAnonymousReportData
+} from '../../data/e2e/FullAnonymousReportData';
+import { FollowUpFlow } from '../../flows/public/FollowUpFlow';
 
 import { submitAndValidate } from '../../helpers/public/submitReportAssertions';
 
 
 test.describe('Anonymous Full Report Submission - E2E', () => {
 
-    test(
-        'E2E-005 | Anonymous reporter submits full report with person, witness role, evidence and previous reporting @e2e @public @intake',
-        async ({ page }) => {
+    const scenarios = [
+        {
+            name: 'platform reporting',
+            testId: 'E2E-005',
+            data: FullAnonymousReportData
+        },
+        {
+            name: 'another reporting channel',
+            testId: 'E2E-006',
+            data: FullAnonymousAnotherChannelReportData
+        },
+        {
+            name: 'first-time reporting',
+            testId: 'E2E-007',
+            data: FullAnonymousFirstTimeReportData
+        }
+    ];
+
+    for (const scenario of scenarios) {
+        test(
+        `${scenario.testId} | Anonymous reporter submits full report with ${scenario.name} @e2e @public @intake`,
+        async ({ page, browser }) => {
 
             const submit = new SubmitReportPage(page);
             const notice = new ReportingNoticePage(page);
-            const data = FullAnonymousReportData;
+            const data = scenario.data;
 
 
             // ============================================================
@@ -66,6 +90,12 @@ test.describe('Anonymous Full Report Submission - E2E', () => {
             ).toBe(
                 data.personsInvolved.persons?.length ?? 0
             );
+
+            await expect(page.getByRole('combobox', { name: 'Role In Incident 2', exact: true }))
+                .toHaveValue('Witness');
+
+            await expect(page.getByRole('combobox', { name: 'Role In Incident 1', exact: true }))
+                .toHaveValue('Alleged Perpetrator');
 
             await submit.personsInvolved.next();
 
@@ -126,9 +156,9 @@ test.describe('Anonymous Full Report Submission - E2E', () => {
 
             await submit.declaration.verifyLoaded();
 
-            await submit.declaration.acceptAllAcknowledgements();
+            await submit.declaration.acceptAcknowledgement();
 
-            await submit.declaration.verifyBothAcknowledgementsChecked();
+            await submit.declaration.verifyAcknowledgementChecked();
 
 
             // ============================================================
@@ -138,9 +168,8 @@ test.describe('Anonymous Full Report Submission - E2E', () => {
             const result = await submitAndValidate(
                 page,
                 submit,
-                'E2E-005'
+                scenario.testId
             );
-
 
             // ============================================================
             // ANONYMOUS FOLLOW-UP PIN
@@ -151,7 +180,28 @@ test.describe('Anonymous Full Report Submission - E2E', () => {
                 'Anonymous report should generate a PIN'
             ).toBeTruthy();
 
+            // ============================================================
+            // VIEW REPORT - VERIFY ALL ENTERED DATA
+            // ============================================================
+
+            const followUpContext = await browser.newContext();
+
+            try {
+                const followUpPage = await followUpContext.newPage();
+                const followUp = new FollowUpFlow(followUpPage);
+
+                await followUp.accessCase({
+                    referenceNumber: result.reference,
+                    pin: result.pin
+                });
+
+                await followUp.casePage.expectSubmittedReport(data);
+            } finally {
+                await followUpContext.close();
+            }
+
         }
-    );
+        );
+    }
 
 });

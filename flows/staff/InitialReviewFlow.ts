@@ -48,6 +48,18 @@ export class InitialReviewFlow {
         );
     }
 
+    async openFirstUnderAssessmentReport(): Promise<string> {
+        await this.dashboard.verifyLoaded();
+        await this.dashboard.openUnderAssessment();
+
+        const reportId = await this.dashboard.discoverFirstUnderAssessmentReportId();
+        await this.dashboard.verifyReportStatus(reportId, 'Under Assessment');
+        await this.dashboard.openReportTask(reportId);
+        await this.initialReview.verifyLoaded(reportId);
+
+        return reportId;
+    }
+
     async verifyInitialReview(
         reportId: string,
     ): Promise<void> {

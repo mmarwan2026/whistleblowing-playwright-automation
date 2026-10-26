@@ -1,13 +1,8 @@
 import { expect, Page, test } from '@playwright/test';
-import { ReportingNoticePage } from '../../../pages/public/ReportingNoticePage';
-import { SubmitReportPage } from '../../../pages/public/submit-report/SubmitReportPage';
+import { openIntakeStep } from './support/openIntakeStep';
 
-async function openPersons(page: Page): Promise<SubmitReportPage> {
-  const submit = new SubmitReportPage(page); const notice = new ReportingNoticePage(page);
-  await submit.open(); await notice.next();
-  await submit.reporterInfo.fill({ identityType: 'anonymous', reporterCategory: 'Employee' }); await submit.reporterInfo.next();
-  await submit.reportDetails.fill({ category: 'Conflict of Interest-Nepotism/Cronyism', incidentDescription: 'Synthetic persons smoke scenario.', awarenessMethod: 'Synthetic automation validation.', incidentDate: '2026-01-01', ongoing: 'No' }); await submit.reportDetails.next();
-  await submit.personsInvolved.verifyLoaded(); return submit;
+async function openPersons(page: Page) {
+  return openIntakeStep(page, 'personsInvolved');
 }
 
 test.describe('Person(s) Involved @public @intake', () => {
@@ -19,6 +14,8 @@ test.describe('Person(s) Involved @public @intake', () => {
     await submit.personsInvolved.fill({ canIdentify: 'Yes', persons: [{ fullName: 'Synthetic Witness', position: 'Synthetic Specialist', company: 'Synthetic Test Company', roleInIncident: 'Witness' }] });
     await expect(page.getByRole('textbox', { name: 'Full Name 1', exact: true })).toHaveValue('Synthetic Witness'); await expect(page.getByRole('combobox', { name: 'Role In Incident 1', exact: true })).toHaveValue('Witness');
     expect(await submit.personsInvolved.getPersonCount()).toBe(1);
+    await submit.personsInvolved.next();
+    await submit.entitiesInvolved.verifyLoaded();
   });
   test('TC-039 | User can add multiple current involved people @regression @public @intake', async ({ page }) => {
     const submit = await openPersons(page);

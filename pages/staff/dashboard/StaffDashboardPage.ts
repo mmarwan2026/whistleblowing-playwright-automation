@@ -38,6 +38,24 @@ export class StaffDashboardPage {
         await this.underAssessmentCard.click();
     }
 
+    async discoverFirstUnderAssessmentReportId(): Promise<string> {
+        const row = this.page.getByRole('row')
+            .filter({ hasText: 'Under Assessment' })
+            .filter({ hasText: /REP-\d+/ })
+            .first();
+
+        await expect(
+            row,
+            'At least one Under Assessment case should be available'
+        ).toBeVisible({ timeout: 20_000 });
+
+        const reportId = (await row.innerText()).match(/REP-\d+/)?.[0];
+        expect(reportId, 'The Under Assessment row should contain a Case Number')
+            .toMatch(/^REP-\d+$/);
+
+        return reportId!;
+    }
+
     getReportCell(reportId: string): Locator {
         return this.page.getByText(
             reportId,

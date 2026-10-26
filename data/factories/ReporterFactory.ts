@@ -1,6 +1,4 @@
-import {
-  ReporterInfoData
-} from '../../models/public/ReporterData';
+import type { ReporterInfoData } from '../../models/public/ReporterData';
 
 export class ReporterFactory {
 
@@ -16,15 +14,4 @@ export class ReporterFactory {
     };
   }
 
-  // ==========================================================
-  // IDENTIFIED EMPLOYEE
-  // ==========================================================
-
-  static identifiedEmployee(): ReporterInfoData {
-
-    return {
-      identityType: 'identified',
-      reporterCategory: 'Employee'
-    };
-  }
 }

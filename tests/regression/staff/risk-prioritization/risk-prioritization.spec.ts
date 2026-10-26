@@ -11,13 +11,18 @@ import { test, expect } from '@playwright/test';
  * - Override precedence
  *
  * NOTE:
- * This suite validates the specified decision rules independently.
- * It does NOT yet validate the real Risk Matrix UI.
- * UI automation should be added after the actual controls/locators are discovered.
+ * This suite intentionally validates the decision rules independently of the UI.
+ * The real Priority & Risk page is covered by:
+ * tests/e2e/staff/risk-prioritization/risk-prioritization-ui.e2e.spec.ts
  */
 
 type Rating = 1 | 3 | 5 | 10;
 type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
+
+/**
+ * Current UI rating scale:
+ * Low = 1, Medium = 3, High = 5, Critical = 10.
+ */
 
 interface RiskRatings {
   natureSeverity: Rating;
@@ -50,17 +55,29 @@ interface OverrideTriggers {
 }
 
 const WEIGHTS: Record<keyof RiskRatings, number> = {
+  // Nature and severity of alleged misconduct
   natureSeverity: 15,
+  // Regulatory, legal and deadline exposure
   regulatoryExposure: 12,
+  // Subject seniority and governance sensitivity
   subjectSeniority: 12,
+  // Operational and business-continuity impact
   operationalImpact: 10,
+  // Reputation and external attention
   reputationImpact: 10,
+  // Financial exposure and ongoing loss
   financialExposure: 8,
+  // Evidence preservation and concealment risk
   evidenceRisk: 8,
+  // Retaliation, witness and immediate safety risk
   retaliationSafetyRisk: 7,
+  // Pervasiveness and control breakdown
   controlBreakdown: 8,
+  // Credibility and corroboration available
   credibility: 4,
+  // Recurrence, prior reports and attempted suppression
   recurrenceSuppression: 3,
+  // Investigation complexity and specialist dependency
   investigationComplexity: 3,
 };
 

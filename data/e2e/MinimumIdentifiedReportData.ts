@@ -1,6 +1,12 @@
-import { ReportData } from '../../models/public/ReportData';
+import type { SubmissionReportData } from './SubmissionReportData';
 
-export const MinimumIdentifiedReportData: ReportData = {
+const e2eReporterEmail = process.env.E2E_REPORTER_EMAIL;
+
+if (!e2eReporterEmail) {
+  throw new Error('E2E_REPORTER_EMAIL must be set to a real QA mailbox before running identified-report tests.');
+}
+
+export const MinimumIdentifiedReportData: SubmissionReportData = {
   reporter: {
     identityType: 'identified',
     firstName: 'Synthetic',
@@ -9,24 +15,11 @@ export const MinimumIdentifiedReportData: ReportData = {
     department: 'Synthetic Quality Assurance',
     position: 'Automation Tester',
     mobile: '+966500000000',
-    email: 'mmarwan@ntgclarity.com'
-  },
-  classification: {
-    internalAuditAnswer: 'No',
-    category: 'Nepotism/Cronyism',
-  },
-  allegation: {
-    incidentTitle: 'Potential conflict of interest',
-    whatHappened:
-      'An employee may have participated in a decision involving a related party.',
-    awarenessMethod:
-      'I became aware through internal business communication.',
-    knowsExactDate: 'No',
-    incidentDateDescription: 'September 2026',
-    ongoing: 'No'
+    mobileCountryCode: '+966',
+    email: e2eReporterEmail
   },
   reportDetails: {
-    category: 'Conflict of Interest-Nepotism/Cronyism',
+    category: 'Corruption-Conflict of interest - Commercial',
     incidentDescription:
       'A synthetic employee may have participated in a decision involving a related party.',
     policyReference: 'Synthetic Conflict of Interest Policy',
@@ -51,11 +44,6 @@ export const MinimumIdentifiedReportData: ReportData = {
   entitiesInvolved: {
     canIdentify: 'No',
   },
-  witnesses: { hasWitnesses: 'No' },
   evidence: { hasSupportingEvidence: 'No' },
-  previousReporting: { previouslyReported: 'No' },
-  declaration: {
-    accurateInformation: true,
-    confidentialityAcknowledged: true
-  }
+  previousReporting: { previouslyReported: 'No' }
 };

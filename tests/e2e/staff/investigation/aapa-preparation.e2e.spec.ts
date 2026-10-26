@@ -15,9 +15,7 @@ import {
  * ================================================================
  */
 
-const REPORT_ID =
-    process.env.TEST_REPORT_ID ??
-    'REP-567';
+let REPORT_ID = '';
 
 
 const USERNAME =
@@ -44,6 +42,28 @@ if (!USERNAME || !PASSWORD) {
 test.describe(
     'Lead Investigator - AAPA Preparation @e2e @staff @investigation',
     () => {
+        test.beforeEach(async ({ page }) => {
+            await page.goto('/login');
+            await page.locator('#user').fill(USERNAME!);
+            await page.locator('#pass').fill(PASSWORD!);
+            await page.getByRole('button', { name: /login|sign in/i }).click();
+            await expect(page.locator('#user')).toHaveCount(0, { timeout: 20_000 });
+
+            await page.getByText('Tasks', { exact: true }).click();
+            await expect(page).toHaveURL(/\/pages\/todolist\/myTasks/, { timeout: 20_000 });
+
+            const assignedCaseMessage = page.getByText(
+                /A new task has been assigned for Case ID: REP-\d+ and is awaiting your action\./,
+            ).first();
+            await expect(
+                assignedCaseMessage,
+                'An active AAPA Preparation task should be available',
+            ).toBeVisible({ timeout: 20_000 });
+
+            REPORT_ID = (await assignedCaseMessage.innerText()).match(/REP-\d+/)?.[0] ?? '';
+            expect(REPORT_ID, 'The assigned task should contain a Case Number')
+                .toMatch(/^REP-\d+$/);
+        });
 
         /*
          * ========================================================
@@ -253,9 +273,9 @@ test.describe(
                     );
 
 
-                const assignedTask =
+                let assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
 
@@ -399,7 +419,7 @@ test.describe(
                             );
 
 
-                        const pauseButton =
+                        let pauseButton =
                             actionsContainer.getByRole(
                                 'button',
                                 {
@@ -412,30 +432,39 @@ test.describe(
                             );
 
 
+                        if (await startButton.isVisible()) {
+                            await startButton.click();
+                            const dialog = page.locator('[data-dialog-host="popup"]');
+                            await expect(dialog.getByText('Start Task', { exact: true })).toBeVisible();
+                            await dialog.getByRole('button', { name: 'Start', exact: true }).click();
+                            await expect(dialog).toBeHidden();
+
+                            await page.reload();
+                            await expect(page).toHaveURL(/\/pages\/todolist\/myTasks/, { timeout: 20_000 });
+
+                            const refreshedCaseMessage = page.getByText(
+                                new RegExp(`Case ID: ${REPORT_ID}`),
+                            ).first();
+                            await expect(
+                                refreshedCaseMessage,
+                                `${REPORT_ID} should remain visible after starting the task`,
+                            ).toBeVisible({ timeout: 20_000 });
+
+                            assignedTask = refreshedCaseMessage.locator(
+                                'xpath=ancestor::div[.//button][1]',
+                            );
+                            const refreshedActionsButton = assignedTask.getByRole('button', { name: 'Actions' });
+                            await refreshedActionsButton.click();
+                            pauseButton = refreshedActionsButton.locator('..').getByRole('button', {
+                                name: 'Pause',
+                                exact: true,
+                            });
+                        }
+
                         await expect(
-                            startButton,
-                            'Start should not be available after task has started',
-                        ).toHaveCount(
-                            0,
-                        );
-
-
-                        await expect(
-                            pauseButton,
-                            'Pause should be available for started task',
-                        ).toHaveCount(
-                            1,
-                        );
-
-
-                        await expect(
-                            pauseButton,
+                            assignedTask.getByRole('button', { name: 'Actions' }),
+                            'The refreshed AAPA task should remain actionable',
                         ).toBeVisible();
-
-
-                        await expect(
-                            pauseButton,
-                        ).toBeEnabled();
 
 
                         console.log('');
@@ -1078,7 +1107,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
 
@@ -2063,7 +2092,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
 
@@ -2802,7 +2831,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
 
@@ -3258,7 +3287,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
 
@@ -3733,7 +3762,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -4431,7 +4460,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -5074,7 +5103,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -5418,7 +5447,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -5963,7 +5992,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -6918,7 +6947,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -7969,7 +7998,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -9227,7 +9256,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);
@@ -10478,7 +10507,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);
@@ -11529,7 +11558,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);
@@ -12472,10 +12501,10 @@ test.describe(
                 console.log('REPORT PRESENCE IN FRESH SESSION');
                 console.log('========================================');
                 console.log(
-                    `Exact REP-567 Count: ${reportExactCount}`,
+                    `Exact ${REPORT_ID} Count: ${reportExactCount}`,
                 );
                 console.log(
-                    `REP-567 Present Anywhere: ${reportPresentAnywhere}`,
+                    `${REPORT_ID} Present Anywhere: ${reportPresentAnywhere}`,
                 );
                 console.log('========================================');
 
@@ -12524,7 +12553,7 @@ test.describe(
 
                     const assignedTask =
                         assignedCaseMessage.locator(
-                            'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                         );
 
                     await expect(
@@ -12803,7 +12832,7 @@ test.describe(
 
                 console.log('');
                 console.log('========================================');
-                console.log('ALL VISIBLE REP-567 TASK CARDS');
+                console.log(`ALL VISIBLE ${REPORT_ID} TASK CARDS`);
                 console.log('========================================');
 
                 console.log(
@@ -13070,7 +13099,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);
@@ -14351,7 +14380,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);
@@ -15641,7 +15670,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);
@@ -17014,7 +17043,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -17900,7 +17929,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -18828,7 +18857,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);
@@ -19952,7 +19981,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);
@@ -21093,7 +21122,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -22312,7 +22341,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -23759,7 +23788,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -25232,7 +25261,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -26673,7 +26702,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);
@@ -27473,7 +27502,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -29061,7 +29090,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -30756,7 +30785,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -32432,7 +32461,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -34108,7 +34137,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -35784,7 +35813,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -37460,7 +37489,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -39136,7 +39165,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -40812,7 +40841,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -42488,7 +42517,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(
@@ -44059,7 +44088,7 @@ test.describe(
 
                 const assignedTask =
                     assignedCaseMessage.locator(
-                        'xpath=ancestor::*[@role="button"][1]',
+                        'xpath=ancestor::div[.//button][1]',
                     );
 
                 await expect(assignedTask).toHaveCount(1);

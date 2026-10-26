@@ -46,8 +46,7 @@ import {
     ExactPhoneOnlyReport,
     ExactPositionOnlyReport,
     ExactCompanyOnlyReport,
-    ExactDepartmentOnlyReport,
-    ExactRoleOnlyReport
+    ExactDepartmentOnlyReport
 } from '../../../data/similarity/SimilarityBenchmarkData';
 
 import {
@@ -87,15 +86,7 @@ async function submitReport(
     await submit.reporterInfo.next();
 
     await submit.reportDetails.verifyLoaded();
-    await submit.reportDetails.fill(data.reportDetails ?? {
-        category: `Conflict of Interest-${data.classification.category}`,
-        incidentDescription: data.allegation.whatHappened,
-        policyReference: data.allegation.rulePolicyLaw,
-        awarenessMethod: data.allegation.awarenessMethod,
-        location: data.allegation.incidentLocation,
-        incidentDate: data.allegation.incidentDate ?? '2026-01-01',
-        ongoing: data.allegation.ongoing ?? 'Unknown'
-    });
+    await submit.reportDetails.fill(data.reportDetails);
     await submit.reportDetails.next();
 
     await submit.personsInvolved.verifyLoaded();
@@ -119,7 +110,7 @@ async function submitReport(
     await submit.evidence.next();
 
     await submit.declaration.verifyLoaded();
-    await submit.declaration.acceptAllAcknowledgements();
+    await submit.declaration.acceptAcknowledgement();
 
     return submitAndValidate(
         page,
@@ -700,42 +691,29 @@ test(
 
 
 test(
-    'AI-SIM-032 | Exact role only with all other person fields different @e2e @public @case-similarity',
+    'AI-SIM-032 | Dynamic assigned case opens Case Similarity @e2e @staff @case-similarity',
     async ({ browser }) => {
-        const submission = await runSimilarityScenario(
-            browser,
-            'AI-SIM-032',
-            ExactRoleOnlyReport,
-            'EXACT-ROLE-ONLY'
-        );
-
-        await readSimilarityResult(
-            browser,
-            submission.comparison.reference,
-            submission.base.reference
-        );
+        await readSimilarityResult(browser);
     }
 );
 async function readSimilarityResult(
-    browser: Browser,
-    comparisonReference: string,
-    baseReference: string
+    browser: Browser
 ) {
     const context = await browser.newContext();
     const page = await context.newPage();
 
     try {
-        const email = process.env.STAFF_USERNAME;
-        const password = process.env.STAFF_PASSWORD;
+        const email = process.env.LEAD_INVESTIGATOR_USERNAME;
+        const password = process.env.LEAD_INVESTIGATOR_PASSWORD;
 
         expect(
             email,
-            'STAFF_USERNAME must be configured'
+            'LEAD_INVESTIGATOR_USERNAME must be configured'
         ).toBeTruthy();
 
         expect(
             password,
-            'STAFF_PASSWORD must be configured'
+            'LEAD_INVESTIGATOR_PASSWORD must be configured'
         ).toBeTruthy();
 
         const login = new LoginFlow(page);
@@ -755,28 +733,27 @@ async function readSimilarityResult(
             .getByRole('link', { name: 'My Workspace' })
             .click();
 
-        /*
-         * Search for the newly submitted comparison report.
-         */
         const workspaceSearch = page.getByRole(
             'textbox',
             { name: 'Search...' }
         );
 
         await expect(workspaceSearch).toBeVisible();
+        const row = page.getByRole('row')
+            .filter({ hasText: 'AAPA Preparation' })
+            .filter({ hasText: /REP-\d+/ })
+            .filter({ hasNotText: /Completed|Done/i })
+            .first();
+        await expect(row, 'An active, non-completed AAPA Preparation task should be visible').toBeVisible();
 
-        await workspaceSearch.fill(comparisonReference);
+        const comparisonCaseNumber = (await row.innerText()).match(/REP-\d+/)?.[0];
+        expect(comparisonCaseNumber, 'The AAPA task row should contain a Case Number').toMatch(/^REP-\d+$/);
+        await row.getByRole('button', { name: 'Open Task' }).click();
 
-        /*
-         * Open the task returned by the search.
-         */
-        const openTask = page.getByRole('button', {
-            name: 'Open Task'
-        });
-
-        await expect(openTask.first()).toBeVisible();
-
-        await openTask.first().click();
+        await expect(
+            page.getByText('Update AAPA Preparation', { exact: true }),
+            'Assigned AAPA Preparation task should open'
+        ).toBeVisible({ timeout: 20_000 });
 
         /*
          * Based on the currently recorded workflow,
@@ -790,18 +767,19 @@ async function readSimilarityResult(
             new CaseSimilarityPage(page);
 
         await similarityPage.open();
+        const baseCaseNumber = await similarityPage.getFirstResultReference();
 
         const result =
             await similarityPage.searchAndGetResult(
-                baseReference
+                baseCaseNumber
             );
 
         console.log('');
         console.log('================================');
         console.log('CASE SIMILARITY RESULT');
         console.log('================================');
-        console.log('Comparison :', comparisonReference);
-        console.log('Base       :', baseReference);
+        console.log('Comparison Case Number:', comparisonCaseNumber);
+        console.log('Base Case Number       :', baseCaseNumber);
         console.log('Person Match:', result.personMatch);
         console.log('Match Type  :', result.matchType || '-');
         console.log('Current     :', result.currentPerson || '-');

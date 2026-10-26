@@ -1,11 +1,11 @@
+export type CanIdentifyEntity = 'Yes' | 'No';
+
 export interface EntityInvolved {
-    entityName: string;
+  entityName: string;
 }
 
 export interface EntitiesInvolvedData {
-    canIdentify:
-    | 'Yes'
-    | 'No';
+  canIdentify: CanIdentifyEntity;
 
-    entities?: EntityInvolved[];
+  entities?: EntityInvolved[];
 }

@@ -57,7 +57,11 @@ export class CaseSimilarityPage {
             'Case Similarity tab should be visible'
         ).toBeVisible();
 
-        await this.tab.click();
+        await this.tab.click({ force: true });
+        await expect(
+            this.tab,
+            'Case Similarity tab should be selected after opening'
+        ).toHaveAttribute('aria-selected', 'true');
 
         await expect(
             this.panel,
@@ -91,6 +95,33 @@ export class CaseSimilarityPage {
             this.getResultRow(reference),
             `Similarity result ${reference} should be displayed`
         ).toBeVisible();
+    }
+
+    async searchWithoutResult(reference: string): Promise<void> {
+        await expect(
+            this.searchInput,
+            'Case Similarity search should be visible'
+        ).toBeVisible();
+
+        await this.searchInput.fill(reference);
+
+        await expect(
+            this.getResultRow(reference),
+            `Similarity result ${reference} should not be displayed`
+        ).toHaveCount(0);
+    }
+
+    async getFirstResultReference(): Promise<string> {
+        const firstResultRow = this.panel.getByRole('row').nth(1);
+
+        await expect(
+            firstResultRow,
+            'At least one Case Similarity result should be available'
+        ).toBeVisible();
+
+        const reference = (await firstResultRow.getByText(/^REP-\d+$/).first().innerText()).trim();
+        expect(reference, 'Similarity result should contain a Case Number').toMatch(/^REP-\d+$/);
+        return reference;
     }
 
     /**
@@ -154,29 +185,17 @@ export class CaseSimilarityPage {
 
         expect(
             cellCount,
-            `Similarity row ${reference} should contain at least 13 cells`
-        ).toBeGreaterThanOrEqual(13);
+            `Similarity row ${reference} should contain the current UI columns`
+        ).toBeGreaterThanOrEqual(7);
 
-        const actualReference =
-            (await cells.nth(0).innerText()).trim();
-
-        const personMatch =
-            (await cells.nth(7).innerText()).trim();
-
-        const matchType =
-            (await cells.nth(8).innerText()).trim();
-
-        const currentPerson =
-            (await cells.nth(9).innerText()).trim();
-
-        const matchedPerson =
-            (await cells.nth(10).innerText()).trim();
-
-        const scoreText =
-            (await cells.nth(11).innerText()).trim();
-
-        const level =
-            (await cells.nth(12).innerText()).trim();
+        const currentUi = cellCount < 13;
+        const actualReference = (await row.getByText(/^REP-\d+$/).first().innerText()).trim();
+        const personMatch = (await cells.nth(currentUi ? 3 : 7).innerText()).trim();
+        const matchType = (await cells.nth(currentUi ? 4 : 8).innerText()).trim();
+        const currentPerson = (await cells.nth(currentUi ? 5 : 9).innerText()).trim();
+        const matchedPerson = (await cells.nth(currentUi ? 6 : 10).innerText()).trim();
+        const scoreText = (await cells.nth(currentUi ? 2 : 11).innerText()).trim();
+        const level = currentUi ? '-' : (await cells.nth(12).innerText()).trim();
 
         /**
          * Score may be displayed as:

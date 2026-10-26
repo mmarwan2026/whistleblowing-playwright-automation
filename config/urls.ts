@@ -6,6 +6,14 @@ export const Routes = {
   },
   staff: {
     login: '/login',
-    dashboard: '/dashboard'
+    dashboard: 'aura/dashboard'
   }
 } as const;
+
+export function resolveRoute(route: string): string {
+  const baseUrl = process.env.BASE_URL;
+  if (!baseUrl) return route;
+
+  const appBaseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  return new URL(route.replace(/^\/+/, ''), appBaseUrl).toString();
+}

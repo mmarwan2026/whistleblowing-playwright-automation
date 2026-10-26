@@ -2,10 +2,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
 
 import { StaffDashboardPage } from '../../../../pages/staff/dashboard/StaffDashboardPage';
 
-const REPORT_ID =
-    process.env.TEST_REPORT_ID ??
-    'REP-567';
-
 async function discoverSubmissionAction(
     page: Page,
     taskContainer: Locator,
@@ -382,6 +378,7 @@ test.describe(
                 // Login
                 // =============================================
 
+                let reportId = '';
                 await test.step(
                     'Login as HOD',
                     async () => {
@@ -456,14 +453,16 @@ test.describe(
                         await dashboard
                             .openUnderAssessment();
 
+                        reportId = await dashboard.discoverFirstUnderAssessmentReportId();
+
                         await dashboard
                             .verifyReportVisible(
-                                REPORT_ID,
+                                reportId,
                             );
 
                         await dashboard
                             .verifyReportStatus(
-                                REPORT_ID,
+                                reportId,
                                 'Under Assessment',
                             );
                     },
@@ -475,11 +474,11 @@ test.describe(
                 // =============================================
 
                 await test.step(
-                    `Open current task for ${REPORT_ID}`,
+                    `Open current task for ${reportId}`,
                     async () => {
                         await dashboard
                             .openReportTask(
-                                REPORT_ID,
+                                reportId,
                             );
                     },
                 );
@@ -512,7 +511,7 @@ test.describe(
                         await expect(
                             taskContainer,
                         ).toContainText(
-                            REPORT_ID,
+                            reportId,
                         );
 
                         await expect(
@@ -568,7 +567,7 @@ test.describe(
                 console.log('========================================');
                 console.log('STAFF-AAPA-E2E-002 RESULT');
                 console.log('========================================');
-                console.log(`Report: ${REPORT_ID}`);
+                console.log(`Report: ${reportId}`);
                 console.log(
                     'Initial Review Submission: FOUND',
                 );

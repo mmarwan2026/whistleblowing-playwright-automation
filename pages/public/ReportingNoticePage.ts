@@ -12,7 +12,9 @@ export class ReportingNoticePage {
     ).toBeVisible();
 
     await expect(
-      this.page.getByRole('button', { name: 'Confirm and continue' })
+      this.page.getByRole('button', {
+        name: /^(?:Confirm and continue|Agree and Continue)$/
+      })
     ).toBeVisible();
 
     await expect(
@@ -22,7 +24,9 @@ export class ReportingNoticePage {
 
   async next() {
     await this.page
-      .getByRole('button', { name: 'Confirm and continue' })
+      .getByRole('button', {
+        name: /^(?:Confirm and continue|Agree and Continue)$/
+      })
       .click();
   }
 

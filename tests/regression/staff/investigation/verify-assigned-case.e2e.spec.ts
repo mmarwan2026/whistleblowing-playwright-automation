@@ -1,9 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-const REPORT_ID =
-    process.env.TEST_REPORT_ID ??
-    'REP-567';
-
 const USERNAME =
     process.env.LEAD_INVESTIGATOR_USERNAME;
 
@@ -22,6 +18,7 @@ test.describe(
         test(
             'STAFF-INV-E2E-001 | Discover assigned case after Lead Investigator assignment',
             async ({ page }) => {
+                let reportId = '';
 
                 /*
                  * ============================================================
@@ -113,7 +110,7 @@ test.describe(
                             '========================================',
                         );
                         console.log(
-                            `Report Target: ${REPORT_ID}`,
+                            'Report Target: dynamically discovered assigned case',
                         );
                         console.log(
                             `URL: ${page.url()}`,
@@ -174,20 +171,17 @@ test.describe(
                          * Verify the exact assignment message.
                          */
 
-                        const assignedCaseText =
-                            `A new task has been assigned for Case ID: ${REPORT_ID} and is awaiting your action.`;
+                        const assignedCaseMessage = page.getByText(
+                            /A new task has been assigned for Case ID: REP-\d+ and is awaiting your action\./,
+                        ).first();
 
-                        const assignedCaseMessage =
-                            page.getByText(
-                                assignedCaseText,
-                                {
-                                    exact: true,
-                                },
-                            );
+                        await expect(assignedCaseMessage).toBeVisible({ timeout: 20_000 });
+                        reportId = (await assignedCaseMessage.innerText()).match(/REP-\d+/)?.[0] ?? '';
+                        expect(reportId, 'The assigned task should contain a Case Number').toMatch(/^REP-\d+$/);
 
                         await expect(
                             assignedCaseMessage,
-                            `${REPORT_ID} should appear in Lead Investigator My Tasks`,
+                            `${reportId} should appear in Lead Investigator My Tasks`,
                         ).toBeVisible({
                             timeout: 20_000,
                         });
@@ -207,7 +201,7 @@ test.describe(
                             '========================================',
                         );
                         console.log(
-                            `Report: ${REPORT_ID}`,
+                            `Report: ${reportId}`,
                         );
                         console.log(
                             'Task: AAPA Preparation',
@@ -230,7 +224,7 @@ test.describe(
                          */
 
                         await test.step(
-                            `Discover ${REPORT_ID} Actions popup`,
+                            `Discover ${reportId} Actions popup`,
                             async () => {
 
                                 /*
@@ -247,7 +241,7 @@ test.describe(
 
                                 await expect(
                                     assignedTask,
-                                    `${REPORT_ID} task card should exist`,
+                                    `${reportId} task card should exist`,
                                 ).toHaveCount(1);
 
                                 await expect(
@@ -263,7 +257,7 @@ test.describe(
                                 await expect(
                                     assignedTask,
                                 ).toContainText(
-                                    REPORT_ID,
+                                    reportId,
                                 );
 
                                 /*
@@ -289,7 +283,7 @@ test.describe(
 
                                 await expect(
                                     actionsButton,
-                                    `${REPORT_ID} Actions button should exist`,
+                                    `${reportId} Actions button should exist`,
                                 ).toHaveCount(1);
 
                                 await expect(
@@ -331,7 +325,7 @@ test.describe(
                                     '========================================',
                                 );
                                 console.log(
-                                    'REP-567 ACTIONS POPUP DISCOVERY',
+                                    `${reportId} ACTIONS POPUP DISCOVERY`,
                                 );
                                 console.log(
                                     '========================================',

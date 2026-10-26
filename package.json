@@ -16,6 +16,7 @@
     "test:ui": "playwright test --ui",
     "report": "playwright show-report",
     "auth:generate": "tsx scripts/generate-auth-state.ts",
+    "env:validate": "tsx scripts/validate-env.ts",
     "health": "tsx scripts/health-check.ts",
     "data:create": "tsx scripts/create-test-data.ts",
     "data:cleanup": "tsx scripts/cleanup-test-data.ts"

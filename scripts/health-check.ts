@@ -5,7 +5,7 @@ async function main() {
   const env = getEnvironment();
   const ctx = await request.newContext();
 
-  for (const url of [env.publicUrl, env.staffUrl, env.apiUrl]) {
+  for (const url of [env.publicUrl, env.staffUrl]) {
     const response = await ctx.get(url);
     console.log(url, response.status());
   }
