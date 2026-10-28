@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { resolveRoute, Routes } from '../../../config/urls';
+import { Routes } from '../../../config/urls';
 
 import { ReporterInfoStep } from './steps/ReporterInfoStep';
 import { ReportDetailsStep } from './steps/ReportDetailsStep';
@@ -42,7 +42,7 @@ export class SubmitReportPage {
   }
 
   async open(): Promise<void> {
-    await this.page.goto(resolveRoute(Routes.public.home));
-    await this.page.locator(`a[href$="${Routes.public.submitReport}"]`).first().click();
+    await this.page.goto(Routes.public.home);
+    await this.page.getByRole('link', { name: /start a new report/i }).click();
   }
 }
