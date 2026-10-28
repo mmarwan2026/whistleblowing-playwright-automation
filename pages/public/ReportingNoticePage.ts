@@ -6,8 +6,8 @@ export class ReportingNoticePage {
   async verifyLoaded() {
     await expect(
       this.page.getByRole('heading', {
-        name: 'Reporting & Confidentiality Notice',
-        level: 1
+      name: 'Reporting & Confidentiality Notice',
+      level: 1
       })
     ).toBeVisible();
 
