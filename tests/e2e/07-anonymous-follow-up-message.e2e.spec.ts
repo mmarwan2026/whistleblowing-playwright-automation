@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-
 import { ReportFactory } from '../../data/factories/ReportFactory';
 import { AnonymousReportFlow } from '../../flows/public/AnonymousReportFlow';
 import { FollowUpFlow } from '../../flows/public/FollowUpFlow';
