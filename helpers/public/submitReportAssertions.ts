@@ -1,5 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { SubmitReportPage } from '../../pages/public/submit-report/SubmitReportPage';
+import { SubmissionSuccessPage } from '../../pages/public/submit-report/SubmissionSuccessPage';
 
 export interface SubmitReportResult {
   reference: string;
@@ -59,6 +60,19 @@ export async function submitAndValidate(
       { exact: true }
     )
   ).toBeHidden();
+
+  const successPage = new SubmissionSuccessPage(page);
+  await successPage.expectSuccess();
+
+  const displayedResult = await successPage.getResult();
+  expect(
+    displayedResult.referenceNumber,
+    `${testId}: success page reference must match the submitted report`
+  ).toBe(body.data.reference);
+  expect(
+    displayedResult.pin,
+    `${testId}: success page access code must be a six-digit value`
+  ).toMatch(/^\d{6}$/);
 
   return {
     reference: body.data.reference,
