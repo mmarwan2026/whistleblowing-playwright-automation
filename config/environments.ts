@@ -24,6 +24,7 @@ export function getEnvironment(): EnvironmentConfig {
     throw new Error('STAFF_URL is required in .env');
   }
 
+
   return {
     name,
     publicUrl: normalizeUrl(publicUrl),
